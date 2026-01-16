@@ -1,5 +1,5 @@
 <template>
-  <div class="bg-white rounded-2xl shadow-sm mb-4 overflow-hidden">
+  <div class="bg-white rounded-2xl shadow-md mb-4 overflow-hidden border border-gray-100">
     <!-- Imagen del producto -->
     <div class="relative">
       <div class="aspect-square bg-neutral-50 flex items-center justify-center">
@@ -13,32 +13,33 @@
     </div>
 
     <!-- Contenido -->
-    <div class="p-6">
+    <div class="p-4">
       <!-- Categoría -->
-      <div v-if="producto.categoria_nombre" class="mb-3">
+      <div v-if="producto.categoria_nombre" class="mb-2">
         <span class="inline-block bg-gray-200 text-gray-700 text-sm font-medium px-3 py-1 rounded-full">
           {{ producto.categoria_nombre }}
         </span>
       </div>
 
       <!-- Nombre -->
-      <h3 class="text-xl font-bold text-neutral-900 mb-2 line-clamp-2">
+      <h3 class="text-lg font-bold text-neutral-900 mb-1 line-clamp-2">
         {{ producto.nombre }}
       </h3>
 
       <!-- Descripción -->
-      <p v-if="producto.descripcion" class="text-neutral-600 text-sm mb-4 line-clamp-2">
+      <p v-if="producto.descripcion" class="text-neutral-600 text-sm mb-3 line-clamp-2 h-10">
         {{ producto.descripcion }}
       </p>
 
       <!-- Precio y botón -->
-      <div class="flex items-center justify-between">
-        <span class="text-2xl font-bold text-green-600">
+      <div class="flex items-center justify-between mt-2">
+        <span class="text-xl font-bold text-green-600">
           {{ producto.precio_base }}€
         </span>
         <button
-          @click="agregarProducto"
-          class="bg-primary-500 text-white px-4 py-2 rounded-lg hover:bg-primary-600 transition-colors font-medium"
+          @click.stop="manejarClickAñadir" 
+          :disabled="!producto.disponible"
+          class="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors font-medium text-sm disabled:bg-gray-300 disabled:cursor-not-allowed"
         >
           Añadir
         </button>
@@ -48,27 +49,29 @@
 </template>
 
 <script setup>
-import { ChefHat, Plus } from 'lucide-vue-next'
-import { useCarritoStore } from '../store/carrito'
+import { defineProps, defineEmits } from 'vue';
+import { ChefHat } from 'lucide-vue-next';
+
+// *** LA CORRECCIÓN CRÍTICA ESTÁ AQUÍ (de 'stores' a 'store') ***
+import { useCartStore } from '../store/cart'; 
 
 const props = defineProps({
   producto: {
     type: Object,
     required: true
   }
-})
+});
 
-const carritoStore = useCarritoStore()
+const cartStore = useCartStore(); 
 
-const agregarProducto = () => {
-  if (!props.producto.disponible) return
-  carritoStore.agregarProducto({
-    ...props.producto,
-    cantidad: 1,
-    precio_unitario: props.producto.precio_base,
-    opciones_seleccionadas: {}
-  })
-}
+const emit = defineEmits(['click']); 
+
+const manejarClickAñadir = () => {
+  if (!props.producto.disponible) return;
+  
+  // Emite el evento para que MenuView.vue abra el modal
+  emit('click'); 
+};
 
 </script>
 

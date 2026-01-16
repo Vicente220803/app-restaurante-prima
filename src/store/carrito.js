@@ -10,37 +10,50 @@ export const useCarritoStore = defineStore('carrito', () => {
   })
 
   const agregarProducto = (producto) => {
+    console.log('Agregando producto:', producto)
     // Crear un identificador único que considere las opciones seleccionadas
     const itemKey = producto.opciones_seleccionadas
       ? `${producto.id}-${JSON.stringify(producto.opciones_seleccionadas)}`
       : producto.id
 
+    console.log('ItemKey generado:', itemKey)
     const existingItem = items.value.find(item => item.itemKey === itemKey)
 
     if (existingItem) {
       existingItem.cantidad += producto.cantidad || 1
+      console.log('Producto existente actualizado, nueva cantidad:', existingItem.cantidad)
     } else {
-      items.value.push({
+      const newItem = {
         ...producto,
         itemKey,
         cantidad: producto.cantidad || 1,
         precio_unitario: producto.precio_unitario || producto.precio,
         precio_total: (producto.precio_unitario || producto.precio) * (producto.cantidad || 1)
-      })
+      }
+      items.value.push(newItem)
+      console.log('Nuevo producto agregado:', newItem)
     }
   }
 
-  const removerProducto = (productoId) => {
-    const index = items.value.findIndex(item => item.id === productoId)
+  const removerProducto = (itemKey) => {
+    console.log('Removiendo producto con itemKey:', itemKey)
+    const index = items.value.findIndex(item => item.itemKey === itemKey)
     if (index > -1) {
+      console.log('Producto encontrado y removido:', items.value[index])
       items.value.splice(index, 1)
+    } else {
+      console.log('Producto no encontrado para remover')
     }
   }
 
   const updateItem = (updatedItem) => {
-    const index = items.value.findIndex(item => item.id === updatedItem.id)
+    console.log('Actualizando item:', updatedItem)
+    const index = items.value.findIndex(item => item.itemKey === updatedItem.itemKey)
     if (index > -1) {
+      console.log('Item encontrado y actualizado:', items.value[index], '->', updatedItem)
       items.value[index] = updatedItem
+    } else {
+      console.log('Item no encontrado para actualizar')
     }
   }
 

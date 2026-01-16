@@ -146,6 +146,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useCarritoStore } from '../store/carrito'
 import { supabase } from '../supabase'
 import { useRoute } from 'vue-router'
+import { ShoppingCart, X, ChefHat, Minus, Plus, Loader, Check } from 'lucide-vue-next'
 
 const carritoStore = useCarritoStore()
 const route = useRoute()
