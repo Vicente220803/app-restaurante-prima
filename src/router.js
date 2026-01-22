@@ -1,14 +1,26 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import MenuView from './views/MenuView.vue'
+import CartView from './views/CartView.vue'
 import AdminView from './views/AdminView.vue'
 import CocinaView from './views/CocinaView.vue'
 import ComandasView from './views/ComandasView.vue'
+import TableEntryView from './views/TableEntryView.vue'
 
 const routes = [
+  {
+    path: '/:restaurantSlug/table/:tableNumber',
+    name: 'TableEntry',
+    component: TableEntryView
+  },
   {
     path: '/:restaurantSlug/menu',
     name: 'Menu',
     component: MenuView
+  },
+  {
+    path: '/:restaurantSlug/cart',
+    name: 'Cart',
+    component: CartView
   },
   {
     path: '/admin',
@@ -25,10 +37,10 @@ const routes = [
     name: 'Comandas',
     component: ComandasView
   },
-  // Redirección por defecto
+  // Redirección por defecto - ir a la entrada de mesa para demo
   {
     path: '/',
-    redirect: '/la-toscana/menu'
+    redirect: '/la-toscana/table/1'
   }
 ]
 
