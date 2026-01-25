@@ -44,6 +44,17 @@ const productosDemo = [
 const isModalOpen = ref(false)
 const selectedProduct = ref(null)
 
+// Image lightbox
+const isImageOpen = ref(false)
+const selectedImage = ref('')
+
+const openImage = (imageUrl) => {
+  if (imageUrl) {
+    selectedImage.value = imageUrl
+    isImageOpen.value = true
+  }
+}
+
 // Obtener slug del restaurante
 const restaurantSlug = route.params.restaurantSlug
 const tableNumber = route.query.table || '1'
@@ -79,29 +90,21 @@ onMounted(async () => {
 
     restaurante.value = resData || { nombre: 'La Toscana' }
 
-    if (resData) {
-      // 2. Cargar categorías
-      const { data: catData } = await supabase
-        .from('categorias')
-        .select('*')
-        .eq('restaurant_id', resData.id)
-        .order('orden')
+    // 2. Cargar categorías desde Supabase
+    const { data: catData } = await supabase
+      .from('categorias')
+      .select('*')
+      .order('nombre')
 
-      // 3. Cargar productos
-      const { data: prodData } = await supabase
-        .from('productos')
-        .select('*')
-        .eq('restaurant_id', resData.id)
-        .eq('activa', true)
+    // 3. Cargar productos desde Supabase
+    const { data: prodData } = await supabase
+      .from('productos')
+      .select('*, categorias(id, nombre)')
+      .eq('disponible', true)
 
-      // Usar datos de Supabase si existen, sino usar demo
-      categorias.value = catData?.length ? catData : categoriasDefault
-      productos.value = prodData?.length ? prodData : productosDemo
-    } else {
-      // Si no hay restaurante en Supabase, usar datos demo
-      categorias.value = categoriasDefault
-      productos.value = productosDemo
-    }
+    // Usar datos de Supabase si existen, sino usar demo
+    categorias.value = catData?.length ? catData : categoriasDefault
+    productos.value = prodData?.length ? prodData : productosDemo
   } catch (error) {
     console.error('Error cargando datos:', error)
     // En caso de error, usar datos demo
@@ -242,7 +245,7 @@ const getCategoryIcon = (nombre) => {
             class="group bg-white dark:bg-gray-900 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-transparent hover:border-[#e27246]/20"
           >
             <!-- Product Image -->
-            <div class="relative h-48 w-full cursor-pointer" @click="openProduct(producto)">
+            <div class="relative h-48 w-full cursor-pointer" @click="openImage(producto.imagen_url)">
               <div
                 class="absolute inset-0 bg-center bg-no-repeat bg-cover transition-transform duration-500 group-hover:scale-110 bg-gray-100"
                 :style="producto.imagen_url ? `background-image: url('${producto.imagen_url}')` : ''"
@@ -250,6 +253,10 @@ const getCategoryIcon = (nombre) => {
                 <div v-if="!producto.imagen_url" class="w-full h-full flex items-center justify-center">
                   <span class="material-symbols-outlined text-5xl text-gray-300">restaurant</span>
                 </div>
+              </div>
+              <!-- Zoom icon overlay -->
+              <div v-if="producto.imagen_url" class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
+                <span class="material-symbols-outlined text-white text-3xl drop-shadow-lg">zoom_in</span>
               </div>
               <!-- Badges -->
               <div v-if="producto.destacado" class="absolute top-3 left-3 bg-white/90 dark:bg-gray-900/90 backdrop-blur px-2 py-1 rounded-lg flex items-center gap-1 shadow-sm">
@@ -264,8 +271,16 @@ const getCategoryIcon = (nombre) => {
             <!-- Product Info -->
             <div class="p-5">
               <div class="flex justify-between items-start mb-2">
-                <h3 class="text-lg font-bold leading-tight">{{ producto.nombre }}</h3>
-                <span class="material-symbols-outlined text-[#e27246]/40">restaurant</span>
+                <h3
+                  class="text-lg font-bold leading-tight cursor-pointer hover:text-[#e27246] transition-colors"
+                  @click="openProduct(producto)"
+                >{{ producto.nombre }}</h3>
+                <button
+                  class="text-[#e27246]/40 hover:text-[#e27246] transition-colors"
+                  @click="openProduct(producto)"
+                >
+                  <span class="material-symbols-outlined">info</span>
+                </button>
               </div>
               <p class="text-gray-500 dark:text-gray-400 text-sm leading-relaxed mb-4 line-clamp-2">
                 {{ producto.descripcion || 'Delicioso plato de nuestra cocina' }}
@@ -321,6 +336,32 @@ const getCategoryIcon = (nombre) => {
       :product="selectedProduct"
       @close="isModalOpen = false"
     />
+
+    <!-- Image Lightbox -->
+    <Teleport to="body">
+      <Transition name="fade">
+        <div
+          v-if="isImageOpen"
+          class="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center p-4"
+          @click="isImageOpen = false"
+        >
+          <!-- Close button -->
+          <button
+            class="absolute top-4 right-4 text-white/80 hover:text-white p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+            @click="isImageOpen = false"
+          >
+            <span class="material-symbols-outlined text-3xl">close</span>
+          </button>
+
+          <!-- Image -->
+          <img
+            :src="selectedImage"
+            class="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl"
+            @click.stop
+          />
+        </div>
+      </Transition>
+    </Teleport>
   </div>
 </template>
 
@@ -340,5 +381,15 @@ const getCategoryIcon = (nombre) => {
 }
 .font-display {
   font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+/* Lightbox transitions */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 </style>

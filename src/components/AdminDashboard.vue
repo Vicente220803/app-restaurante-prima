@@ -20,15 +20,19 @@
             <span class="material-symbols-outlined" style="color: #f97316;">analytics</span>
             Ventas
           </a>
-          <a class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all" href="#" style="color: #9ca3af;" @mouseenter="$event.target.parentElement.style.backgroundColor='#1f1f1f'" @mouseleave="$event.target.parentElement.style.backgroundColor='transparent'">
+          <router-link to="/admin/productos" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all hover:bg-[#1f1f1f]" style="color: #9ca3af;">
+            <span class="material-symbols-outlined">restaurant_menu</span>
+            Productos
+          </router-link>
+          <a class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all hover:bg-[#1f1f1f]" href="#" style="color: #9ca3af;">
             <span class="material-symbols-outlined">table_restaurant</span>
             Mesas
           </a>
-          <a class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all" href="#" style="color: #9ca3af;" @mouseenter="$event.target.parentElement.style.backgroundColor='#1f1f1f'" @mouseleave="$event.target.parentElement.style.backgroundColor='transparent'">
+          <router-link to="/cocina" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all hover:bg-[#1f1f1f]" style="color: #9ca3af;">
             <span class="material-symbols-outlined">outdoor_grill</span>
             Cocina
-          </a>
-          <a class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all" href="#" style="color: #9ca3af;" @mouseenter="$event.target.parentElement.style.backgroundColor='#1f1f1f'" @mouseleave="$event.target.parentElement.style.backgroundColor='transparent'">
+          </router-link>
+          <a class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all hover:bg-[#1f1f1f]" href="#" style="color: #9ca3af;">
             <span class="material-symbols-outlined">badge</span>
             Personal
           </a>
@@ -38,14 +42,14 @@
       <!-- User Profile -->
       <div class="mt-auto p-6" style="border-top: 1px solid #1f1f1f;">
         <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-full flex items-center justify-center overflow-hidden" style="background-color: #1f1f1f;">
-            <img alt="Admin Avatar" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAvCyhzFtsLexitreddCE_NsADXBzAUPlvGYmGnGcDM_S_7JAvOHA8LcZi3SgvJyekTuq6sHYwJ_5gUJ2nD6pVdU2p3i6qQ-bR9eL4hwpmJrzn3WwNUMNc10CZnp0aAFJLbdP5teAEpnMTCNXuwSq8UG1893YmWJm_vqHbZ0aumBJUtKJ1nfEEkdvfRKb5eZrJ8r88Yo0PtdW5SrGm_o5xpI4NSyLSh01-pyGV0JwmuXUjBgK8H-HEm8bP__3rY4UcgOFkhNgX2-3c7"/>
+          <div class="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold" style="background-color: rgba(249, 115, 22, 0.2); color: #f97316;">
+            {{ iniciales }}
           </div>
           <div class="flex-1">
-            <p class="text-sm font-bold">Roberto G.</p>
-            <p class="text-xs" style="color: #6b7280;">Gerente</p>
+            <p class="text-sm font-bold">{{ adminStore.nombre }}</p>
+            <p class="text-xs capitalize" style="color: #6b7280;">{{ adminStore.rol }}</p>
           </div>
-          <button class="text-gray-500 hover:text-white" style="color: #6b7280;">
+          <button @click="cerrarSesion" class="text-gray-500 hover:text-red-400 transition-colors" title="Cerrar sesion">
             <span class="material-symbols-outlined text-xl">logout</span>
           </button>
         </div>
@@ -63,7 +67,7 @@
         <div class="flex items-center gap-4">
           <div class="flex items-center px-4 py-2 rounded-xl border" style="background-color: #1f1f1f; border-color: #2d2d2d;">
             <span class="material-symbols-outlined mr-2 text-xl" style="color: #9ca3af;">calendar_today</span>
-            <span class="text-sm font-semibold">Hoy, 24 May</span>
+            <span class="text-sm font-semibold">{{ fechaHoy }}</span>
           </div>
           <button class="text-white p-2.5 rounded-xl transition-all" style="background-color: #f97316; box-shadow: 0 0 20px rgba(249, 115, 22, 0.2);">
             <span class="material-symbols-outlined">notifications</span>
@@ -120,7 +124,7 @@
               <span class="material-symbols-outlined" style="color: #3b82f6;">deck</span>
             </div>
           </div>
-          <p class="text-sm font-medium" style="color: #9ca3af;">Ocupación Mesas</p>
+          <p class="text-sm font-medium" style="color: #9ca3af;">Ocupacion Mesas</p>
           <div class="flex items-end justify-between mt-1">
             <h3 class="text-2xl font-extrabold">85%</h3>
             <p class="text-xs pb-1" style="color: #6b7280;">22 de 26 mesas</p>
@@ -151,45 +155,45 @@
                 </tr>
               </thead>
               <tbody style="border-color: #1f1f1f;">
-                <tr class="transition-colors" style="border-bottom: 1px solid #1f1f1f;" @mouseenter="$event.target.parentElement.style.backgroundColor='rgba(31, 31, 31, 0.5)'" @mouseleave="$event.target.parentElement.style.backgroundColor='transparent'">
+                <tr class="transition-colors hover:bg-[#1f1f1f]/50" style="border-bottom: 1px solid #1f1f1f;">
                   <td class="px-6 py-4 font-medium">#1294</td>
                   <td class="px-6 py-4">Mesa 04</td>
                   <td class="px-6 py-4">
                     <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wide" style="background-color: rgba(249, 115, 22, 0.1); color: #f97316;">
-                      Preparing
+                      Preparando
                     </span>
                   </td>
                   <td class="px-6 py-4 font-bold">42,50€</td>
                   <td class="px-6 py-4 text-sm" style="color: #9ca3af;">12 min</td>
                 </tr>
-                <tr class="transition-colors" style="border-bottom: 1px solid #1f1f1f;" @mouseenter="$event.target.parentElement.style.backgroundColor='rgba(31, 31, 31, 0.5)'" @mouseleave="$event.target.parentElement.style.backgroundColor='transparent'">
+                <tr class="transition-colors hover:bg-[#1f1f1f]/50" style="border-bottom: 1px solid #1f1f1f;">
                   <td class="px-6 py-4 font-medium">#1293</td>
                   <td class="px-6 py-4">Mesa 12</td>
                   <td class="px-6 py-4">
                     <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wide" style="background-color: rgba(34, 197, 94, 0.1); color: #22c55e;">
-                      Ready
+                      Listo
                     </span>
                   </td>
                   <td class="px-6 py-4 font-bold">28,00€</td>
                   <td class="px-6 py-4 text-sm" style="color: #9ca3af;">25 min</td>
                 </tr>
-                <tr class="transition-colors" style="border-bottom: 1px solid #1f1f1f;" @mouseenter="$event.target.parentElement.style.backgroundColor='rgba(31, 31, 31, 0.5)'" @mouseleave="$event.target.parentElement.style.backgroundColor='transparent'">
+                <tr class="transition-colors hover:bg-[#1f1f1f]/50" style="border-bottom: 1px solid #1f1f1f;">
                   <td class="px-6 py-4 font-medium">#1292</td>
                   <td class="px-6 py-4">Mesa 08</td>
                   <td class="px-6 py-4">
                     <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wide" style="background-color: #374151; color: #d1d5db;">
-                      Delivered
+                      Entregado
                     </span>
                   </td>
                   <td class="px-6 py-4 font-bold">115,20€</td>
                   <td class="px-6 py-4 text-sm" style="color: #9ca3af;">42 min</td>
                 </tr>
-                <tr class="transition-colors" @mouseenter="$event.target.parentElement.style.backgroundColor='rgba(31, 31, 31, 0.5)'" @mouseleave="$event.target.parentElement.style.backgroundColor='transparent'">
+                <tr class="transition-colors hover:bg-[#1f1f1f]/50">
                   <td class="px-6 py-4 font-medium">#1291</td>
                   <td class="px-6 py-4">Mesa 01</td>
                   <td class="px-6 py-4">
                     <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wide" style="background-color: rgba(249, 115, 22, 0.1); color: #f97316;">
-                      Preparing
+                      Preparando
                     </span>
                   </td>
                   <td class="px-6 py-4 font-bold">18,50€</td>
@@ -261,6 +265,38 @@
     </main>
   </div>
 </template>
+
+<script setup>
+import { computed } from 'vue'
+import { useRouter } from 'vue-router'
+import { useAdminStore } from '../store/admin'
+
+const router = useRouter()
+const adminStore = useAdminStore()
+
+// Iniciales del nombre
+const iniciales = computed(() => {
+  const nombre = adminStore.nombre || 'Usuario'
+  const partes = nombre.split(' ')
+  if (partes.length >= 2) {
+    return (partes[0][0] + partes[1][0]).toUpperCase()
+  }
+  return nombre.substring(0, 2).toUpperCase()
+})
+
+// Fecha de hoy
+const fechaHoy = computed(() => {
+  const fecha = new Date()
+  const opciones = { day: 'numeric', month: 'short' }
+  return `Hoy, ${fecha.toLocaleDateString('es-ES', opciones)}`
+})
+
+// Cerrar sesion
+function cerrarSesion() {
+  adminStore.logout()
+  router.push('/admin/login')
+}
+</script>
 
 <style scoped>
 .no-scrollbar::-webkit-scrollbar {

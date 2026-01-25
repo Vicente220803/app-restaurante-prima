@@ -2,6 +2,8 @@ import { createRouter, createWebHistory } from 'vue-router'
 import MenuView from './views/MenuView.vue'
 import CartView from './views/CartView.vue'
 import AdminView from './views/AdminView.vue'
+import AdminProductosView from './views/AdminProductosView.vue'
+import AdminLoginView from './views/AdminLoginView.vue'
 import CocinaView from './views/CocinaView.vue'
 import ComandasView from './views/ComandasView.vue'
 import TableEntryView from './views/TableEntryView.vue'
@@ -23,9 +25,25 @@ const routes = [
     component: CartView
   },
   {
+    path: '/admin/login',
+    name: 'AdminLogin',
+    component: AdminLoginView
+  },
+  {
     path: '/admin',
-    name: 'Admin',
-    component: AdminView
+    redirect: '/admin/productos'
+  },
+  {
+    path: '/admin/dashboard',
+    name: 'AdminDashboard',
+    component: AdminView,
+    meta: { requiresAdmin: true }
+  },
+  {
+    path: '/admin/productos',
+    name: 'AdminProductos',
+    component: AdminProductosView,
+    meta: { requiresAdmin: true }
   },
   {
     path: '/cocina',
@@ -37,7 +55,7 @@ const routes = [
     name: 'Comandas',
     component: ComandasView
   },
-  // Redirección por defecto - ir a la entrada de mesa para demo
+  // Redireccion por defecto - ir a la entrada de mesa para demo
   {
     path: '/',
     redirect: '/la-toscana/table/1'
@@ -47,6 +65,20 @@ const routes = [
 const router = createRouter({
   history: createWebHistory(),
   routes
+})
+
+// Navigation guard para proteger rutas de admin
+router.beforeEach((to, from, next) => {
+  if (to.meta.requiresAdmin) {
+    const isAuthenticated = sessionStorage.getItem('adminAuth') === 'true'
+    if (!isAuthenticated) {
+      next('/admin/login')
+    } else {
+      next()
+    }
+  } else {
+    next()
+  }
 })
 
 export default router

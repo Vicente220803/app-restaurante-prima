@@ -8,6 +8,7 @@ CREATE TABLE productos (
   restaurant_id UUID NOT NULL,
   nombre VARCHAR(255) NOT NULL,
   descripcion TEXT,
+  ingredientes TEXT,
   precio DECIMAL(10,2) NOT NULL,
   imagen_url VARCHAR(500),
   categoria VARCHAR(100),
@@ -16,6 +17,9 @@ CREATE TABLE productos (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+-- Si la tabla ya existe, ejecutar esto para añadir la columna:
+-- ALTER TABLE productos ADD COLUMN ingredientes TEXT;
 
 -- Índices para mejor rendimiento
 CREATE INDEX idx_productos_restaurant_id ON productos(restaurant_id);

@@ -1,10 +1,18 @@
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-[#23160f] dark:bg-[#23160f] p-4">
+  <div class="min-h-screen flex items-center justify-center bg-[#23160f] dark:bg-[#23160f] p-4 relative">
     <TablePinEntry
       :restaurantName="restaurantName"
       :tableNumber="tableNumber"
       :restaurantSlug="restaurantSlug"
     />
+
+    <!-- Enlace discreto para acceso del personal -->
+    <router-link
+      to="/admin/login"
+      class="absolute bottom-4 right-4 text-xs text-white/30 hover:text-white/60 transition-colors"
+    >
+      Acceso Personal
+    </router-link>
   </div>
 </template>
 
