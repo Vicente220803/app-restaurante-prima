@@ -7,6 +7,7 @@ import AdminLoginView from './views/AdminLoginView.vue'
 import CocinaView from './views/CocinaView.vue'
 import ComandasView from './views/ComandasView.vue'
 import TableEntryView from './views/TableEntryView.vue'
+import CamareroView from './views/CamareroView.vue'
 
 const routes = [
   {
@@ -54,6 +55,12 @@ const routes = [
     path: '/comandas',
     name: 'Comandas',
     component: ComandasView
+  },
+  {
+    path: '/camarero',
+    name: 'Camarero',
+    component: CamareroView,
+    meta: { requiresAdmin: true }
   },
   // Redireccion por defecto - ir a la entrada de mesa para demo
   {

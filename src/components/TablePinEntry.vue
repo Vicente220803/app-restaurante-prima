@@ -121,8 +121,9 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { supabase } from '../supabase'
 
 const router = useRouter()
 
@@ -144,6 +145,24 @@ const props = defineProps({
 const pinDigits = ref(['', '', '', ''])
 const loading = ref(false)
 const error = ref('')
+const restaurante = ref(null)
+
+// Cargar datos del restaurante al montar
+onMounted(async () => {
+  try {
+    const { data } = await supabase
+      .from('restaurantes')
+      .select('id, nombre, pin_dia, pin_camarero, pin_gerente')
+      .eq('slug', props.restaurantSlug)
+      .single()
+
+    if (data) {
+      restaurante.value = data
+    }
+  } catch (e) {
+    console.log('Usando configuración por defecto')
+  }
+})
 
 const addDigit = (digit) => {
   const currentPin = pinDigits.value.join('')
@@ -208,17 +227,33 @@ const submitPin = async () => {
   error.value = ''
 
   try {
-    // TODO: Validar el PIN contra la base de datos
-    // Por ahora, aceptar cualquier PIN de 4 dígitos
-    // En producción, esto debería hacer una llamada a Supabase
+    // PINs por defecto si no hay restaurante en BD
+    const pinDia = restaurante.value?.pin_dia || '1111'
+    const pinCamarero = restaurante.value?.pin_camarero || '1234'
+    const pinGerente = restaurante.value?.pin_gerente || '0000'
 
-    // Simulación de validación
-    await new Promise(resolve => setTimeout(resolve, 500))
-
-    // Redirigir al menú
-    router.push(`/${props.restaurantSlug}/menu?table=${props.tableNumber}`)
+    // Verificar qué tipo de PIN es
+    if (pin === pinGerente) {
+      // PIN de gerente -> Admin
+      sessionStorage.setItem('userRole', 'gerente')
+      sessionStorage.setItem('adminAuth', 'true')
+      router.push('/admin')
+    } else if (pin === pinCamarero) {
+      // PIN de camarero -> Vista camarero
+      sessionStorage.setItem('userRole', 'camarero')
+      sessionStorage.setItem('adminAuth', 'true')
+      router.push('/camarero')
+    } else if (pin === pinDia) {
+      // PIN del día -> Menú para clientes
+      sessionStorage.setItem('userRole', 'cliente')
+      sessionStorage.setItem('clientAuth', 'true')
+      router.push(`/${props.restaurantSlug}/menu?table=${props.tableNumber}`)
+    } else {
+      // PIN incorrecto
+      throw new Error('PIN incorrecto')
+    }
   } catch (err) {
-    error.value = 'PIN incorrecto. Intenta de nuevo.'
+    error.value = 'PIN incorrecto. Pide el PIN a tu camarero.'
     pinDigits.value = ['', '', '', '']
   } finally {
     loading.value = false
