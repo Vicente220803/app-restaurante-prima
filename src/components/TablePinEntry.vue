@@ -152,7 +152,7 @@ onMounted(async () => {
   try {
     const { data } = await supabase
       .from('restaurantes')
-      .select('id, nombre, pin_dia, pin_camarero, pin_gerente')
+      .select('id, nombre, pin_dia, pin_camarero, pin_cocina, pin_gerente')
       .eq('slug', props.restaurantSlug)
       .single()
 
@@ -230,6 +230,7 @@ const submitPin = async () => {
     // PINs por defecto si no hay restaurante en BD
     const pinDia = restaurante.value?.pin_dia || '1111'
     const pinCamarero = restaurante.value?.pin_camarero || '1234'
+    const pinCocina = restaurante.value?.pin_cocina || '2222'
     const pinGerente = restaurante.value?.pin_gerente || '0000'
 
     // Verificar qué tipo de PIN es
@@ -243,6 +244,11 @@ const submitPin = async () => {
       sessionStorage.setItem('userRole', 'camarero')
       sessionStorage.setItem('adminAuth', 'true')
       router.push('/camarero')
+    } else if (pin === pinCocina) {
+      // PIN de cocina -> Vista cocina
+      sessionStorage.setItem('userRole', 'cocina')
+      sessionStorage.setItem('adminAuth', 'true')
+      router.push('/cocina')
     } else if (pin === pinDia) {
       // PIN del día -> Menú para clientes
       sessionStorage.setItem('userRole', 'cliente')

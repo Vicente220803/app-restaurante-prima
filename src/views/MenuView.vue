@@ -288,7 +288,7 @@ const getCategoryIcon = (nombre) => {
               <div class="flex items-center justify-between">
                 <span class="text-[#6BBF5B] font-extrabold text-lg">{{ producto.precio_base?.toFixed(2) }}€</span>
                 <button
-                  @click="addToCart(producto)"
+                  @click="openProduct(producto)"
                   :disabled="!producto.disponible"
                   class="bg-[#e27246] hover:bg-[#e27246]/90 text-white font-bold text-sm px-4 py-2 rounded-xl transition-transform active:scale-95 flex items-center gap-2 disabled:bg-gray-300 disabled:cursor-not-allowed"
                 >
