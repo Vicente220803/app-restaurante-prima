@@ -12,32 +12,60 @@ const productos = ref([])
 const categorias = ref([])
 const restaurante = ref({})
 const loading = ref(true)
-const categoriaActiva = ref(null)
-const searchQuery = ref('')
 
-// Categorías por defecto con iconos
-const categoriasDefault = [
-  { id: 'pizzas', nombre: 'Pizzas', icon: 'local_pizza' },
-  { id: 'pasta', nombre: 'Pasta', icon: 'dinner_dining' },
-  { id: 'entrantes', nombre: 'Entrantes', icon: 'tapas' },
-  { id: 'bebidas', nombre: 'Bebidas', icon: 'local_bar' },
-  { id: 'postres', nombre: 'Postres', icon: 'icecream' }
-]
+// Navegación: grupo > subcategoría > productos
+const grupoActivo = ref(null)
+const subcategoriaActiva = ref(null)
 
-// Productos de demo
-const productosDemo = [
-  { id: 1, nombre: 'Margherita Speciale', descripcion: 'Tomate San Marzano, mozzarella di bufala, albahaca fresca y aceite de oliva virgen extra.', precio_base: 12.50, categoria_id: 'pizzas', imagen_url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuApvGMQjB1ycA0LWbYRoTpO-Pa3vJW0RGpK6PHHRvHgFbmDtdSOHdGUIDmN0AihXDIqOvrEW8o2wsDDt-qCllPzzHIyz-m0xdjQaWdLN-QyuWSXknixU6R0rEqZafZ_zOnAJ0OwmIJuOH4ty47WaZG1Lqci-jOLKN2ngHC1So8chH7emDGSp4MyXuSfE0ldN6ffzXJcQ7KJocXR1Z7W39SBaUpflUcw7u0JXYeykdVK624Z38Yxk0DnGpUsEsig5A0rdxOALzJIQL3r', destacado: true, disponible: true },
-  { id: 2, nombre: 'Diavola Pepperoni', descripcion: 'Pepperoni picante, mozzarella ahumada, peperoncino y nuestra salsa secreta.', precio_base: 14.00, categoria_id: 'pizzas', imagen_url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCW-7dThejtfMuCYrCeZSZfOXyYLAmXPg5Q0RYXH4E9xll_YAT_EwZekkE9vmzvHtT4gY3N2DYNlx6u-1RZ9I61mtnnuw457EzftX3D2Cg4tjNpGaBRrhJjqYUR7xQCO2jw3ajqW2EXFLVJaBkO6VhCqHMsqUw09lcHJuCRot5UXn4PiNmaaRLs-9fn6pefXx1K7OBuOUFZUpijiQK7JuEksJpqFyQCiCYVF62DwjX0Yo4J7Jb6zKsuF-CewKtgjiUVFBiWlFqLA4VR', disponible: true },
-  { id: 3, nombre: 'Quattro Formaggi', descripcion: 'Mezcla cremosa de Gorgonzola, Parmigiano, Fontina y Mozzarella con nueces.', precio_base: 13.50, categoria_id: 'pizzas', imagen_url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuC9E-LZZsYj7HLtbEs6UGZJ_WwpA9TPO3QfFXyFcnbHQOio6Q5js_NzkoK6Wz4p24AGd0LqXZ-oWcuSQPXWZRm1PidrCUm0uRiZLwGlKfUO02vciZDuilLPv6y7jdZnFC7xQYVsgrwHCQb_0CY1Ve9pfkU4a6vU7Swm65nQ02bxC93Pi6orNeu2zWGraQL6A39I2u5FeEUWADIUFCcY2myfnYMv-2Le3u-uik_1NlayxuAvz2UrQFOFfVQ-1vY-xEcf7nCoWjHs1JUW', disponible: true },
-  { id: 4, nombre: 'Vegetariana Zen', descripcion: 'Verduras de temporada asadas, pesto de albahaca, piñones y rúcula fresca.', precio_base: 12.00, categoria_id: 'pizzas', imagen_url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAo2EEHBivTTHb5N5fYcoFBvRZJ8eRZc1-9GU-9PrMFhSynM_X8J2mAcAbHhv5wvFd1q9IGQZ5Bf2E1o6kkCgmch52ShdResTULjCywyvDVn8O5L6kV6ZBFSTk02_-Ddd4kFTucKwJno0id_SujCSPJFsA2JKVylVwGk3HHLHvnEj30DESiT-iN4PGwT5EalbbfhuuhDelJUcsMGnwrM8GzNZKk3Y3HUXrrm4bn9gWSOxKrsfJ4VOgFa4xhrzvMNMthdf-eaqqdqmUX', disponible: true },
-  { id: 5, nombre: 'Spaghetti Carbonara', descripcion: 'Pasta fresca con guanciale crujiente, yema de huevo, pecorino y pimienta negra.', precio_base: 11.50, categoria_id: 'pasta', imagen_url: '', disponible: true },
-  { id: 6, nombre: 'Penne Arrabbiata', descripcion: 'Penne al dente con salsa de tomate picante, ajo y perejil fresco.', precio_base: 9.50, categoria_id: 'pasta', imagen_url: '', disponible: true },
-  { id: 7, nombre: 'Bruschetta Clásica', descripcion: 'Pan tostado con tomate fresco, albahaca, ajo y aceite de oliva virgen.', precio_base: 6.50, categoria_id: 'entrantes', imagen_url: '', destacado: true, disponible: true },
-  { id: 8, nombre: 'Carpaccio di Manzo', descripcion: 'Finas láminas de ternera con rúcula, parmesano y vinagreta de limón.', precio_base: 12.00, categoria_id: 'entrantes', imagen_url: '', disponible: true },
-  { id: 9, nombre: 'Limonada Artesana', descripcion: 'Con hierbabuena y jengibre fresco.', precio_base: 3.50, categoria_id: 'bebidas', imagen_url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCYMADpffNb0D-89kD9eWWajc866m-YkRoFqBQo5tURT7f6WxN7EP0h5T-Eu_p40LZE9dSGjnVl-N2LTTLjieVXMpJWncS6cgQb9aplS_P1czPuWbWgP0OoVBm2ARTq0unLhWYJ-_UURWnxCGsZjS_jGb2RqxALtB-ll77n7kpi7nxQSdh_G905U_Y7j0rWg8BP44wcupVj1pLr0TKLq0eJ1sgjLRoxW1OGDYgx7CTcfsPGrzRzfvE83BdfjatU9DNUUpxtlXrouraG', disponible: true },
-  { id: 10, nombre: 'Chianti DOCG', descripcion: 'Copa de tinto Toscana reserva.', precio_base: 4.50, categoria_id: 'bebidas', imagen_url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCILJT2A6DFL4K-6u7XLmKAOYjJbUoW3lcMfzckPzpFnsHGEZWs9lVrV3q728SjFAZPZimhfA0WKe1BDRJL2KbuLEptx684LBRu9nrhqIZ5FWwuj-O82LxLlpYbfWPwfnK_BQ_uh38JERnFeuXTvQ3w8z4iWcLBjVQKALGuQU7uauegyunCN7Uj1QlJTPfEXW_oYhW8r7PmrTRF-81TfdJapcWf3xkUgT5dVBZenbw-SRu4VgogU5s3Qm14V3uzvzbkgh4wXH8xWHUp', disponible: true },
-  { id: 11, nombre: 'Tiramisú', descripcion: 'Clásico postre italiano con mascarpone, café y cacao.', precio_base: 6.00, categoria_id: 'postres', imagen_url: '', destacado: true, disponible: true },
-  { id: 12, nombre: 'Panna Cotta', descripcion: 'Crema de vainilla con coulis de frutos rojos.', precio_base: 5.50, categoria_id: 'postres', imagen_url: '', disponible: true }
+// Los 7 grupos principales con imágenes
+const gruposMenu = [
+  {
+    id: 'Comida',
+    nombre: 'Comidas',
+    icon: 'restaurant',
+    imagen: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDaEOoZEd5bLfk4PmoyikWzMFmicuXEzYtCCfn1sOzr3aqOvgQCkT5R2t5dZizu5mmIKzHB06RdWOTGwUaDBNSIWcdFFetMIVWTpuf5s1xE_xR9hE7WfrhTV0KgmDBzULkL_TXgztq9UTV0qev6pZPSaeUgmfj7EXd_MkDtDfC2O8Zw-Wwu57bTo5xBek4mL43X56rIUXtgJEMVb6VJkqJTGm6VB_HW58M59xFx3CRuaEm7gw9YxF5Mii6vcqI2M5FwiUPhsP9F3fRQ'
+  },
+  {
+    id: 'Pizzas',
+    nombre: 'Pizzas',
+    icon: 'local_pizza',
+    imagen: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB59XpHmCi3-cpzpqrZ6OuKYWQZewCfq3JS8A5B8gIvUTec8JZIK0cv05A56dTJ8APU52B8Z43-1cwDZMMT21lV88gmeqMgvEtt6Rak2bU5UCiQRopJE3Lvu_wara8sADpS5hKhgNFpGIheoWVwLLGzDPw1MRRxKRWTY7gKnbVgpFT-eQZZXcfUOMpP3yQEpEnPW6MBTZOoHAYEHoIAXEkGEc-nlgdQhV3FiKsFS5-AwX2SmaPskMIKeoB-evJ2ZYan4E2zDzVMofbo'
+  },
+  {
+    id: 'Bebida',
+    nombre: 'Bebidas',
+    icon: 'local_bar',
+    imagen: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAISdJ6EeT6s1t859cyyWaX99W-WmVehl2d_Og0JOW55_zJHY7GRjLvlCrnAUiM-lSoOyt4YMM894AcXtD7rc1j4Xuzx2lcnipBuqhLY2ZLbLB3IO8dYNXaHWD_q0VCPK8chIveXY06DKbQ6m5g0FrrHnUjWZLaK55wDAO588lr2kyx0xCIW9PIY09d2BGm9Z6rNKEEVq9bwpoEcacfPVTxRbNXOAMN_H-nlEgP2cRjb8IY3lS7S3AkGEGLDBbTid2rvFUqJfhHqlUD'
+  },
+  {
+    id: 'Postre',
+    nombre: 'Postres',
+    icon: 'icecream',
+    imagen: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAZzT8fjeSBOwnMUNCDi0Cyx1gJBb39YUZnIOI63jb8-E9SgCwiPHcSGxkqa2Vrobs5ohGjXfu_CvclpgBfKUQj0S64CvaixgT6CQ879XiT-a2za7Ug8SbnBOpYdYktU3IEYyH_MDJeLF675y4NpgJ4-kGzkwbS-ni9aRORiW2qKXBxjK2HZ2XOZlpE8aQMVOfibW2m2_lBgufKg8GqhvaphVi2wokE9LrjCGPM5VGLDG0KraloJSWOekcofZc8EmFLmpD1JP5g_Ehs'
+  },
+  {
+    id: 'Ninos',
+    nombre: 'Niños',
+    icon: 'child_care',
+    imagen: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCuXtSzRJtt3oJVnziGhSS9iR22BwWg38XK9RNEWPN5wxDMUZvuUle1OpxkDjVp1MCN2X_FW5Q08lP_8ixXn8eznAeJcPRNEVzL3DbQvJZZYCOqeZ0coqfGoWJEasZNksi3nXU7sHteReCfMSH9y2CikLmdszAHvOm3wSPZFyTqLSYHez01enREwLIB9vS5YS5omdoxWYaIvwyQNjORP0Xq7EhwvC9S9ypd9Ne_X2xJV_ydPGLUchRDhYjPlz4XP1lzOBa52MkJqZ84'
+  },
+  {
+    id: 'Menu del dia',
+    nombre: 'Menú del Día',
+    icon: 'calendar_today',
+    imagen: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBGQSAyYSEZWEltvxHlZlg6iZVTpOV9SYdhmQwqu8XznvZLqajcUYgUXIYA5sHE-sdhqOrOj5C3n4mYSXhTh-sh9fcOkVRLX-VKXD7bkbAp28mq0dqTnS9fvhk0CSnv5Y2mK_aADsIRptGfZxn8-eNsJWZ32emctYGxS-ocuc52m596G7TMnIhsEl71D8taCkS7BeYqcg1syZlqVDzzclnulpSIPWdumjq7Kn3hYtrfnWIaFD4u8GAOuRl7gCoMvV1icS6Dv_wkeJIi',
+    badge: 'Hoy',
+    badgeColor: 'bg-primary'
+  },
+  {
+    id: 'Promocion del chef',
+    nombre: 'Promoción del Chef',
+    icon: 'workspace_premium',
+    imagen: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBbQ3_Rw3FU_YzBaMMcYBrF3b41lWVc7hMu8SnWVkuJe4DjyJjFJekXTHlN7gXqCio9poe3_t1yVOZF453lWzITaWPQNkjFLK90KjblMKiK7L-OvzJ3oMy8vDqYCvLqE2etT9fooVpeaajbb-mfT6y34PUPcaueGJEdtOL46U9xWaP6D3ot_QypGxQy5wJSq55grNzQFh96cc6g6150fispAouTRAD84Vct9o1rtAOVMVUdogtELGBQQaKYYiSEua3346tScepTM-tk',
+    badge: 'Especial',
+    badgeColor: 'bg-emerald-500',
+    especial: true
+  }
 ]
 
 // Modal
@@ -59,23 +87,41 @@ const openImage = (imageUrl) => {
 const restaurantSlug = route.params.restaurantSlug
 const tableNumber = route.query.table || '1'
 
-// Productos filtrados por categoría
+// Subcategorías del grupo activo
+const subcategoriasDelGrupo = computed(() => {
+  if (!grupoActivo.value) return []
+  return categorias.value.filter(c => c.grupo === grupoActivo.value)
+})
+
+// Productos filtrados
 const productosFiltrados = computed(() => {
   let filtered = productos.value
 
-  if (categoriaActiva.value) {
-    filtered = filtered.filter(p => p.categoria_id === categoriaActiva.value)
+  // Si hay subcategoría activa, filtrar por ella
+  if (subcategoriaActiva.value) {
+    return filtered.filter(p => p.categoria_id === subcategoriaActiva.value)
   }
 
-  if (searchQuery.value) {
-    const query = searchQuery.value.toLowerCase()
-    filtered = filtered.filter(p =>
-      p.nombre.toLowerCase().includes(query) ||
-      p.descripcion?.toLowerCase().includes(query)
-    )
+  // Si hay grupo activo pero no subcategoría, mostrar todos los productos del grupo
+  if (grupoActivo.value) {
+    const catIds = subcategoriasDelGrupo.value.map(c => c.id)
+    return filtered.filter(p => catIds.includes(p.categoria_id))
   }
 
   return filtered
+})
+
+// Título de la sección actual
+const tituloSeccion = computed(() => {
+  if (subcategoriaActiva.value) {
+    const cat = categorias.value.find(c => c.id === subcategoriaActiva.value)
+    return cat?.nombre || ''
+  }
+  if (grupoActivo.value) {
+    const grupo = gruposMenu.find(g => g.id === grupoActivo.value)
+    return grupo?.nombre || ''
+  }
+  return 'Todos los platos'
 })
 
 // Cargar datos
@@ -90,7 +136,7 @@ onMounted(async () => {
 
     restaurante.value = resData || { nombre: 'La Toscana' }
 
-    // 2. Cargar categorías desde Supabase
+    // 2. Cargar categorías desde Supabase (con el campo grupo)
     const { data: catData } = await supabase
       .from('categorias')
       .select('*')
@@ -99,40 +145,41 @@ onMounted(async () => {
     // 3. Cargar productos desde Supabase
     const { data: prodData } = await supabase
       .from('productos')
-      .select('*, categorias(id, nombre)')
+      .select('*, categorias(id, nombre, grupo)')
       .eq('disponible', true)
 
-    // Usar datos de Supabase si existen, sino usar demo
-    categorias.value = catData?.length ? catData : categoriasDefault
-    productos.value = prodData?.length ? prodData : productosDemo
+    categorias.value = catData || []
+    productos.value = prodData || []
   } catch (error) {
     console.error('Error cargando datos:', error)
-    // En caso de error, usar datos demo
-    categorias.value = categoriasDefault
-    productos.value = productosDemo
   } finally {
     loading.value = false
   }
 })
 
-const selectCategoria = (catId) => {
-  categoriaActiva.value = categoriaActiva.value === catId ? null : catId
+// Seleccionar grupo
+const selectGrupo = (grupoId) => {
+  grupoActivo.value = grupoId
+  subcategoriaActiva.value = null
+}
+
+// Seleccionar subcategoría
+const selectSubcategoria = (catId) => {
+  subcategoriaActiva.value = subcategoriaActiva.value === catId ? null : catId
+}
+
+// Volver atrás
+const volverAtras = () => {
+  if (subcategoriaActiva.value) {
+    subcategoriaActiva.value = null
+  } else if (grupoActivo.value) {
+    grupoActivo.value = null
+  }
 }
 
 const openProduct = (producto) => {
   selectedProduct.value = producto
   isModalOpen.value = true
-}
-
-const addToCart = (producto) => {
-  cartStore.addToCart({
-    id: producto.id,
-    nombre: producto.nombre,
-    precioBase: producto.precio_base,
-    precioTotal: producto.precio_base,
-    opcionesIds: {},
-    opcionesResumen: []
-  })
 }
 
 // Iconos por categoría
@@ -145,186 +192,240 @@ const getCategoryIcon = (nombre) => {
     'postres': 'icecream',
     'ensaladas': 'eco',
     'carnes': 'kebab_dining',
-    'pescados': 'set_meal'
+    'pescados': 'set_meal',
+    'vinos': 'wine_bar',
+    'cervezas': 'sports_bar',
+    'refrescos': 'local_cafe',
+    'cocktails': 'nightlife'
   }
   return icons[nombre?.toLowerCase()] || 'restaurant'
 }
 </script>
 
 <template>
-  <div class="bg-[#fcfaf8] dark:bg-[#1a1a1a] min-h-screen font-display text-[#1a120e] dark:text-gray-100">
-    <!-- Top Navigation Bar -->
-    <header class="bg-[#fcfaf8]/80 dark:bg-[#1a1a1a]/80 backdrop-blur-md border-b border-[#f2ebe8] dark:border-gray-800 sticky top-0 z-50">
-      <div class="max-w-[960px] mx-auto px-4 h-16 flex items-center justify-between">
-        <div class="flex items-center gap-3">
-          <div class="bg-[#e27246]/10 p-2 rounded-lg">
-            <span class="material-symbols-outlined text-[#e27246] text-2xl">restaurant_menu</span>
+  <div class="bg-[#f8f6f5] dark:bg-[#221610] text-slate-900 dark:text-white min-h-screen flex flex-col items-center font-display">
+    <!-- Main Container -->
+    <div class="relative flex min-h-screen w-full max-w-[1200px] flex-col overflow-x-hidden">
+
+      <!-- Header Section -->
+      <header class="flex items-center justify-between whitespace-nowrap border-b border-slate-200 dark:border-[#493022] px-6 md:px-10 py-4 sticky top-0 bg-[#f8f6f5]/80 dark:bg-[#221610]/80 backdrop-blur-md z-50">
+        <div class="flex items-center gap-4">
+          <!-- Botón volver cuando hay grupo activo -->
+          <button
+            v-if="grupoActivo"
+            @click="volverAtras"
+            class="p-2 -ml-2 rounded-lg hover:bg-slate-100 dark:hover:bg-[#493022] transition-colors"
+          >
+            <span class="material-symbols-outlined text-slate-600 dark:text-[#cba590]">arrow_back</span>
+          </button>
+          <!-- Logo -->
+          <div v-else class="text-[#da540b]">
+            <svg fill="none" height="32" viewBox="0 0 48 48" width="32" xmlns="http://www.w3.org/2000/svg">
+              <path d="M39.5563 34.1455V13.8546C39.5563 15.708 36.8773 17.3437 32.7927 18.3189C30.2914 18.916 27.263 19.2655 24 19.2655C20.737 19.2655 17.7086 18.916 15.2073 18.3189C11.1227 17.3437 8.44365 15.708 8.44365 13.8546V34.1455C8.44365 35.9988 11.1227 37.6346 15.2073 38.6098C17.7086 39.2069 20.737 39.5564 24 39.5564C27.263 39.5564 30.2914 39.2069 32.7927 38.6098C36.8773 37.6346 39.5563 35.9988 39.5563 34.1455Z" fill="currentColor"/>
+              <path clip-rule="evenodd" d="M10.4485 13.8519C10.4749 13.9271 10.6203 14.246 11.379 14.7361C12.298 15.3298 13.7492 15.9145 15.6717 16.3735C18.0007 16.9296 20.8712 17.2655 24 17.2655C27.1288 17.2655 29.9993 16.9296 32.3283 16.3735C34.2508 15.9145 35.702 15.3298 36.621 14.7361C37.3796 14.246 37.5251 13.9271 37.5515 13.8519C37.5287 13.7876 37.4333 13.5973 37.0635 13.2931C36.5266 12.8516 35.6288 12.3647 34.343 11.9175C31.79 11.0295 28.1333 10.4437 24 10.4437C19.8667 10.4437 16.2099 11.0295 13.657 11.9175C12.3712 12.3647 11.4734 12.8516 10.9365 13.2931C10.5667 13.5973 10.4713 13.7876 10.4485 13.8519ZM37.5563 18.7877C36.3176 19.3925 34.8502 19.8839 33.2571 20.2642C30.5836 20.9025 27.3973 21.2655 24 21.2655C20.6027 21.2655 17.4164 20.9025 14.7429 20.2642C13.1498 19.8839 11.6824 19.3925 10.4436 18.7877V34.1275C10.4515 34.1545 10.5427 34.4867 11.379 35.027C12.298 35.6207 13.7492 36.2054 15.6717 36.6644C18.0007 37.2205 20.8712 37.5564 24 37.5564C27.1288 37.5564 29.9993 37.2205 32.3283 36.6644C34.2508 36.2054 35.702 35.6207 36.621 35.027C37.4573 34.4867 37.5485 34.1546 37.5563 34.1275V18.7877ZM41.5563 13.8546V34.1455C41.5563 36.1078 40.158 37.5042 38.7915 38.3869C37.3498 39.3182 35.4192 40.0389 33.2571 40.5551C30.5836 41.1934 27.3973 41.5564 24 41.5564C20.6027 41.5564 17.4164 41.1934 14.7429 40.5551C12.5808 40.0389 10.6502 39.3182 9.20848 38.3869C7.84205 37.5042 6.44365 36.1078 6.44365 34.1455L6.44365 13.8546C6.44365 12.2684 7.37223 11.0454 8.39581 10.2036C9.43325 9.3505 10.8137 8.67141 12.343 8.13948C15.4203 7.06909 19.5418 6.44366 24 6.44366C28.4582 6.44366 32.5797 7.06909 35.657 8.13948C37.1863 8.67141 38.5667 9.3505 39.6042 10.2036C40.6278 11.0454 41.5563 12.2684 41.5563 13.8546Z" fill="currentColor" fill-rule="evenodd"/>
+            </svg>
           </div>
-          <div>
-            <h1 class="text-xl font-extrabold tracking-tight leading-none">{{ restaurante.nombre || 'La Toscana' }}</h1>
-            <p class="text-[10px] uppercase tracking-widest text-[#e27246] font-bold">Mesa {{ tableNumber }}</p>
-          </div>
+          <h2 class="text-slate-900 dark:text-white text-xl font-extrabold leading-tight tracking-tight">
+            {{ grupoActivo ? tituloSeccion : (restaurante.nombre || 'La Toscana') }}
+          </h2>
         </div>
         <div class="flex items-center gap-4">
-          <!-- Search -->
-          <div class="hidden md:flex items-center bg-[#f2ebe8] dark:bg-gray-800 rounded-xl px-3 py-1.5 gap-2 border border-transparent focus-within:border-[#e27246]/50 transition-all">
-            <span class="material-symbols-outlined text-gray-400 text-sm">search</span>
-            <input
-              v-model="searchQuery"
-              class="bg-transparent border-none focus:ring-0 text-sm p-0 w-32 placeholder:text-gray-400"
-              placeholder="Buscar plato..."
-              type="text"
-            />
+          <div class="hidden md:flex flex-col items-end mr-2">
+            <span class="text-xs text-slate-500 dark:text-[#cba590] font-medium">Ubicación</span>
+            <span class="text-sm font-bold text-[#da540b]">Mesa {{ tableNumber }}</span>
           </div>
-          <!-- Cart Button -->
+          <button class="flex min-w-[84px] cursor-pointer items-center justify-center rounded-xl h-10 px-4 bg-[#da540b] text-white text-sm font-bold shadow-lg shadow-[#da540b]/20 hover:bg-[#da540b]/90 transition-all">
+            <span>Mesa {{ tableNumber }}</span>
+          </button>
+          <!-- Cart button -->
           <button
-            class="bg-[#f2ebe8] dark:bg-gray-800 p-2 rounded-xl flex items-center justify-center relative"
             @click="$router.push(`/${restaurantSlug}/cart?table=${tableNumber}`)"
+            class="relative bg-slate-100 dark:bg-[#493022] p-2.5 rounded-full"
           >
-            <span class="material-symbols-outlined text-gray-600 dark:text-gray-300">shopping_basket</span>
+            <span class="material-symbols-outlined text-slate-600 dark:text-[#cba590]">shopping_cart</span>
             <span
               v-if="cartStore.countItems > 0"
-              class="absolute -top-1 -right-1 bg-[#e27246] text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold"
+              class="absolute -top-1 -right-1 bg-[#da540b] text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold"
             >
               {{ cartStore.countItems }}
             </span>
           </button>
         </div>
-      </div>
-    </header>
-
-    <main class="max-w-[960px] mx-auto pb-32">
-      <!-- Sticky Category Bar -->
-      <div class="sticky top-16 bg-[#fcfaf8] dark:bg-[#1a1a1a] z-40 py-4 px-4 overflow-x-auto no-scrollbar flex gap-3">
-        <button
-          v-for="cat in categorias"
-          :key="cat.id"
-          @click="selectCategoria(cat.id)"
-          :class="[
-            'flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-xl px-5 transition-all',
-            categoriaActiva === cat.id
-              ? 'bg-[#e27246] text-white shadow-lg shadow-[#e27246]/20'
-              : 'bg-[#f2ebe8] dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-[#e27246]/10'
-          ]"
-        >
-          <span class="material-symbols-outlined text-sm">{{ cat.icon || getCategoryIcon(cat.nombre) }}</span>
-          <p class="text-sm font-medium">{{ cat.nombre }}</p>
-        </button>
-      </div>
+      </header>
 
       <!-- Loading State -->
-      <div v-if="loading" class="flex items-center justify-center py-20">
+      <div v-if="loading" class="flex-1 flex items-center justify-center py-20">
         <div class="text-center">
-          <span class="material-symbols-outlined text-4xl text-[#e27246] animate-spin">progress_activity</span>
-          <p class="mt-4 text-gray-500">Cargando menú...</p>
+          <span class="material-symbols-outlined text-4xl text-[#da540b] animate-spin">progress_activity</span>
+          <p class="mt-4 text-slate-500 dark:text-[#cba590]">Cargando menú...</p>
         </div>
       </div>
 
-      <!-- Products Grid -->
-      <div v-else class="px-4 py-2">
-        <div class="flex items-center justify-between mb-4">
-          <h2 class="text-2xl font-extrabold tracking-tight">
-            {{ categoriaActiva ? categorias.find(c => c.id === categoriaActiva)?.nombre : 'Todos los platos' }}
-          </h2>
-          <span class="text-xs font-bold text-gray-400 uppercase tracking-widest">
-            {{ productosFiltrados.length }} platos
-          </span>
-        </div>
+      <template v-else>
+        <!-- ========== VISTA PRINCIPAL: Grupos ========== -->
+        <template v-if="!grupoActivo">
+          <!-- Hero Section -->
+          <div class="px-6 md:px-10 pt-10 pb-24">
+            <h1 class="text-slate-900 dark:text-white tracking-tight text-3xl md:text-4xl font-extrabold leading-tight">
+              ¡Hola! Bienvenido a {{ restaurante.nombre || 'La Toscana' }}
+            </h1>
+          </div>
 
-        <!-- Empty State -->
-        <div v-if="productosFiltrados.length === 0" class="text-center py-16">
-          <span class="material-symbols-outlined text-6xl text-gray-300">restaurant</span>
-          <p class="mt-4 text-gray-500">No hay productos disponibles</p>
-        </div>
-
-        <!-- Products Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <div
-            v-for="producto in productosFiltrados"
-            :key="producto.id"
-            class="group bg-white dark:bg-gray-900 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-transparent hover:border-[#e27246]/20"
-          >
-            <!-- Product Image -->
-            <div class="relative h-48 w-full cursor-pointer" @click="openImage(producto.imagen_url)">
+          <!-- Category Grid -->
+          <main class="flex-1 px-6 md:px-10 pb-32">
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
               <div
-                class="absolute inset-0 bg-center bg-no-repeat bg-cover transition-transform duration-500 group-hover:scale-110 bg-gray-100"
-                :style="producto.imagen_url ? `background-image: url('${producto.imagen_url}')` : ''"
+                v-for="(grupo, index) in gruposMenu"
+                :key="grupo.id"
+                @click="selectGrupo(grupo.id)"
+                :class="[
+                  'group relative bg-cover bg-center flex flex-col gap-3 rounded-2xl justify-end p-5 aspect-square cursor-pointer overflow-hidden transition-all hover:scale-[1.02] hover:shadow-2xl',
+                  grupo.especial ? 'border-2 border-emerald-500/50' : '',
+                  index === gruposMenu.length - 1 ? 'col-span-2 md:col-span-1' : ''
+                ]"
+                :style="`background-image: linear-gradient(0deg, rgba(34, 22, 16, 0.9) 0%, rgba(34, 22, 16, 0.2) 50%, rgba(34, 22, 16, 0) 100%), url('${grupo.imagen}');`"
               >
-                <div v-if="!producto.imagen_url" class="w-full h-full flex items-center justify-center">
-                  <span class="material-symbols-outlined text-5xl text-gray-300">restaurant</span>
+                <!-- Badge -->
+                <div
+                  v-if="grupo.badge"
+                  :class="[
+                    'absolute top-4 right-4 text-white text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider',
+                    grupo.badgeColor || 'bg-[#da540b]'
+                  ]"
+                >
+                  {{ grupo.badge }}
+                </div>
+                <!-- Hover overlay -->
+                <div :class="[
+                  'absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity',
+                  grupo.especial ? 'bg-emerald-500/10' : 'bg-[#da540b]/10'
+                ]"></div>
+                <!-- Icon -->
+                <span :class="[
+                  'material-symbols-outlined mb-1',
+                  grupo.especial ? 'text-emerald-400' : 'text-[#da540b]'
+                ]">{{ grupo.icon }}</span>
+                <!-- Name -->
+                <p class="text-white text-xl font-bold leading-tight">{{ grupo.nombre }}</p>
+              </div>
+            </div>
+          </main>
+        </template>
+
+        <!-- ========== VISTA DE GRUPO: Subcategorías y Productos ========== -->
+        <template v-else-if="grupoActivo">
+          <!-- Subcategories Bar -->
+          <div v-if="subcategoriasDelGrupo.length > 0" class="px-6 md:px-10 mb-4">
+            <div class="flex gap-3 overflow-x-auto no-scrollbar pb-2">
+              <button
+                v-for="subcat in subcategoriasDelGrupo"
+                :key="subcat.id"
+                @click="selectSubcategoria(subcat.id)"
+                :class="[
+                  'flex items-center gap-2 px-4 py-2.5 rounded-xl shrink-0 transition-all text-sm font-medium',
+                  subcategoriaActiva === subcat.id
+                    ? 'bg-[#da540b] text-white shadow-lg shadow-[#da540b]/20'
+                    : 'bg-white dark:bg-[#2d1e16] text-slate-700 dark:text-[#cba590] hover:bg-slate-100 dark:hover:bg-[#493022]'
+                ]"
+              >
+                <span class="material-symbols-outlined text-sm">{{ getCategoryIcon(subcat.nombre) }}</span>
+                <span>{{ subcat.nombre }}</span>
+                <span class="text-xs opacity-60 bg-black/10 dark:bg-white/10 px-1.5 py-0.5 rounded-full">
+                  {{ productos.filter(p => p.categoria_id === subcat.id).length }}
+                </span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Products Grid -->
+          <main class="flex-1 px-6 md:px-10 pb-32">
+            <!-- Empty State -->
+            <div v-if="productosFiltrados.length === 0" class="text-center py-16">
+              <span class="material-symbols-outlined text-6xl text-slate-300 dark:text-[#493022]">restaurant</span>
+              <p class="mt-4 text-slate-500 dark:text-[#cba590]">No hay productos disponibles</p>
+            </div>
+
+            <!-- Products -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div
+                v-for="producto in productosFiltrados"
+                :key="producto.id"
+                class="group bg-white dark:bg-[#2d1e16] rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-slate-100 dark:border-[#493022]"
+              >
+                <!-- Product Image -->
+                <div class="relative h-48 w-full cursor-pointer" @click="openImage(producto.imagen_url)">
+                  <div
+                    class="absolute inset-0 bg-center bg-no-repeat bg-cover transition-transform duration-500 group-hover:scale-110 bg-slate-100 dark:bg-[#493022]"
+                    :style="producto.imagen_url ? `background-image: url('${producto.imagen_url}')` : ''"
+                  >
+                    <div v-if="!producto.imagen_url" class="w-full h-full flex items-center justify-center">
+                      <span class="material-symbols-outlined text-5xl text-slate-300 dark:text-[#493022]">restaurant</span>
+                    </div>
+                  </div>
+                  <!-- Badge Popular -->
+                  <div v-if="producto.destacado" class="absolute top-3 left-3 bg-white/90 dark:bg-[#221610]/90 backdrop-blur px-2 py-1 rounded-lg flex items-center gap-1 shadow-sm">
+                    <span class="material-symbols-outlined text-[#da540b] text-xs">star</span>
+                    <span class="text-[10px] font-bold text-slate-900 dark:text-white">POPULAR</span>
+                  </div>
+                </div>
+
+                <!-- Product Info -->
+                <div class="p-5">
+                  <div class="flex justify-between items-start mb-2">
+                    <h3
+                      class="text-lg font-bold leading-tight cursor-pointer hover:text-[#da540b] transition-colors text-slate-900 dark:text-white"
+                      @click="openProduct(producto)"
+                    >{{ producto.nombre }}</h3>
+                    <button
+                      class="text-[#da540b]/40 hover:text-[#da540b] transition-colors"
+                      @click="openProduct(producto)"
+                    >
+                      <span class="material-symbols-outlined">info</span>
+                    </button>
+                  </div>
+                  <p class="text-slate-500 dark:text-[#cba590] text-sm leading-relaxed mb-4 line-clamp-2">
+                    {{ producto.descripcion || 'Delicioso plato de nuestra cocina' }}
+                  </p>
+                  <div class="flex items-center justify-between">
+                    <span class="text-emerald-600 dark:text-emerald-400 font-extrabold text-lg">{{ producto.precio_base?.toFixed(2) }}€</span>
+                    <button
+                      @click="openProduct(producto)"
+                      :disabled="!producto.disponible"
+                      class="bg-[#da540b] hover:bg-[#da540b]/90 text-white font-bold text-sm px-4 py-2 rounded-xl transition-transform active:scale-95 flex items-center gap-2 disabled:bg-slate-300 disabled:cursor-not-allowed shadow-lg shadow-[#da540b]/20"
+                    >
+                      <span class="material-symbols-outlined text-sm">add</span>
+                      Añadir
+                    </button>
+                  </div>
                 </div>
               </div>
-              <!-- Zoom icon overlay -->
-              <div v-if="producto.imagen_url" class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
-                <span class="material-symbols-outlined text-white text-3xl drop-shadow-lg">zoom_in</span>
-              </div>
-              <!-- Badges -->
-              <div v-if="producto.destacado" class="absolute top-3 left-3 bg-white/90 dark:bg-gray-900/90 backdrop-blur px-2 py-1 rounded-lg flex items-center gap-1 shadow-sm">
-                <span class="material-symbols-outlined text-[#e27246] text-xs font-bold">star</span>
-                <span class="text-[10px] font-bold">POPULAR</span>
-              </div>
-              <div v-if="!producto.disponible" class="absolute top-3 right-3 bg-red-500 text-white px-2 py-1 rounded-lg">
-                <span class="text-[10px] font-bold">AGOTADO</span>
-              </div>
             </div>
+          </main>
+        </template>
+      </template>
 
-            <!-- Product Info -->
-            <div class="p-5">
-              <div class="flex justify-between items-start mb-2">
-                <h3
-                  class="text-lg font-bold leading-tight cursor-pointer hover:text-[#e27246] transition-colors"
-                  @click="openProduct(producto)"
-                >{{ producto.nombre }}</h3>
-                <button
-                  class="text-[#e27246]/40 hover:text-[#e27246] transition-colors"
-                  @click="openProduct(producto)"
-                >
-                  <span class="material-symbols-outlined">info</span>
-                </button>
-              </div>
-              <p class="text-gray-500 dark:text-gray-400 text-sm leading-relaxed mb-4 line-clamp-2">
-                {{ producto.descripcion || 'Delicioso plato de nuestra cocina' }}
-              </p>
-              <div class="flex items-center justify-between">
-                <span class="text-[#6BBF5B] font-extrabold text-lg">{{ producto.precio_base?.toFixed(2) }}€</span>
-                <button
-                  @click="openProduct(producto)"
-                  :disabled="!producto.disponible"
-                  class="bg-[#e27246] hover:bg-[#e27246]/90 text-white font-bold text-sm px-4 py-2 rounded-xl transition-transform active:scale-95 flex items-center gap-2 disabled:bg-gray-300 disabled:cursor-not-allowed"
-                >
-                  <span class="material-symbols-outlined text-sm">add</span>
-                  Añadir
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </main>
-
-    <!-- Floating Cart Bar -->
-    <div
-      v-if="cartStore.countItems > 0"
-      class="fixed bottom-6 left-1/2 -translate-x-1/2 w-full max-w-[480px] px-4 z-50"
-    >
+      <!-- Fixed Bottom Order Bar -->
       <div
-        class="bg-[#e27246] text-white rounded-2xl p-4 shadow-2xl flex items-center justify-between cursor-pointer hover:scale-[1.02] transition-transform"
-        @click="$router.push(`/${restaurantSlug}/cart?table=${tableNumber}`)"
+        v-if="cartStore.countItems > 0"
+        class="fixed bottom-0 left-0 right-0 p-6 flex justify-center z-[100] pointer-events-none"
       >
-        <div class="flex items-center gap-4">
-          <div class="bg-white/20 w-10 h-10 rounded-xl flex items-center justify-center font-bold">
-            {{ cartStore.countItems }}
-          </div>
-          <div>
-            <h5 class="font-extrabold text-sm leading-none">Ver Pedido</h5>
-            <p class="text-[10px] text-white/80 uppercase tracking-tighter mt-1">
-              {{ cartStore.items[0]?.nombre || 'Tu pedido' }}
-              <span v-if="cartStore.items.length > 1">+{{ cartStore.items.length - 1 }} más</span>
-            </p>
-          </div>
-        </div>
-        <div class="text-right">
-          <span class="text-lg font-extrabold tracking-tight">{{ cartStore.totalCart.toFixed(2) }}€</span>
+        <div class="w-full max-w-[960px] pointer-events-auto">
+          <button
+            @click="$router.push(`/${restaurantSlug}/cart?table=${tableNumber}`)"
+            class="w-full flex items-center justify-between overflow-hidden rounded-2xl h-16 px-6 bg-[#da540b] text-white text-lg font-bold shadow-2xl shadow-[#da540b]/40 hover:translate-y-[-2px] active:translate-y-[1px] transition-all group"
+          >
+            <div class="flex items-center gap-4">
+              <div class="bg-white/20 p-2 rounded-lg group-hover:bg-white/30 transition-colors">
+                <span class="material-symbols-outlined">shopping_cart</span>
+              </div>
+              <span class="truncate">Ver Pedido</span>
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="text-sm font-medium opacity-80">{{ cartStore.countItems }} artículos</span>
+              <div class="w-px h-6 bg-white/20"></div>
+              <span class="text-xl">{{ cartStore.totalCart.toFixed(2) }}€</span>
+            </div>
+          </button>
         </div>
       </div>
     </div>
@@ -345,15 +446,12 @@ const getCategoryIcon = (nombre) => {
           class="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center p-4"
           @click="isImageOpen = false"
         >
-          <!-- Close button -->
           <button
             class="absolute top-4 right-4 text-white/80 hover:text-white p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
             @click="isImageOpen = false"
           >
             <span class="material-symbols-outlined text-3xl">close</span>
           </button>
-
-          <!-- Image -->
           <img
             :src="selectedImage"
             class="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl"
@@ -391,5 +489,17 @@ const getCategoryIcon = (nombre) => {
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #221610;
+}
+::-webkit-scrollbar-thumb {
+  background: #493022;
+  border-radius: 10px;
 }
 </style>
