@@ -93,22 +93,22 @@ const subcategoriasDelGrupo = computed(() => {
   return categorias.value.filter(c => c.grupo === grupoActivo.value)
 })
 
-// Productos filtrados
+// Productos filtrados y ordenados alfabéticamente
 const productosFiltrados = computed(() => {
   let filtered = productos.value
 
   // Si hay subcategoría activa, filtrar por ella
   if (subcategoriaActiva.value) {
-    return filtered.filter(p => p.categoria_id === subcategoriaActiva.value)
+    filtered = filtered.filter(p => p.categoria_id === subcategoriaActiva.value)
   }
-
   // Si hay grupo activo pero no subcategoría, mostrar todos los productos del grupo
-  if (grupoActivo.value) {
+  else if (grupoActivo.value) {
     const catIds = subcategoriasDelGrupo.value.map(c => c.id)
-    return filtered.filter(p => catIds.includes(p.categoria_id))
+    filtered = filtered.filter(p => catIds.includes(p.categoria_id))
   }
 
-  return filtered
+  // Ordenar alfabéticamente por nombre
+  return [...filtered].sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'))
 })
 
 // Título de la sección actual
