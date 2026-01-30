@@ -150,6 +150,7 @@ function handleAdd() {
     cartStore.addToCart({
       id: props.product.id,
       nombre: props.product.nombre,
+      imagen: props.product.imagen_url || props.product.imagen || null,
       precioBase: props.product.precio_base,
       precioTotal: props.product.precio_base + precioExtra,
       opcionesIds: { ...selecciones.value },

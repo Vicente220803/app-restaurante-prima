@@ -1,255 +1,435 @@
-<template>
-  <div class="min-h-screen bg-gray-100">
-    <!-- Header -->
-    <header class="bg-white shadow sticky top-0 z-10">
-      <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-        <div class="flex items-center gap-3">
-          <div class="bg-orange-500 p-2 rounded-lg">
-            <span class="material-symbols-outlined text-white">room_service</span>
-          </div>
-          <div>
-            <h1 class="text-xl font-bold text-gray-800">Panel Camarero</h1>
-            <p class="text-xs text-gray-500">Gestiona mesas y pedidos</p>
-          </div>
-        </div>
-        <div class="flex items-center gap-4">
-          <!-- PIN del día -->
-          <div class="bg-orange-50 border border-orange-200 rounded-lg px-4 py-2">
-            <p class="text-xs text-orange-600 font-medium">PIN del día</p>
-            <p class="text-2xl font-bold text-orange-500 tracking-widest">{{ pinDia }}</p>
-          </div>
-          <!-- Cerrar sesión -->
-          <button
-            @click="cerrarSesion"
-            class="text-gray-500 hover:text-red-500 p-2 rounded-lg hover:bg-red-50 transition"
-          >
-            <span class="material-symbols-outlined">logout</span>
-          </button>
-        </div>
-      </div>
-    </header>
-
-    <main class="max-w-6xl mx-auto px-4 py-6">
-      <!-- Tabs -->
-      <div class="flex gap-2 mb-6">
-        <button
-          @click="tabActiva = 'pedidos'"
-          :class="[
-            'px-4 py-2 rounded-lg font-medium transition',
-            tabActiva === 'pedidos' ? 'bg-orange-500 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'
-          ]"
-        >
-          <span class="material-symbols-outlined text-sm align-middle mr-1">receipt_long</span>
-          Pedidos Activos
-        </button>
-        <button
-          @click="tabActiva = 'mesas'"
-          :class="[
-            'px-4 py-2 rounded-lg font-medium transition',
-            tabActiva === 'mesas' ? 'bg-orange-500 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'
-          ]"
-        >
-          <span class="material-symbols-outlined text-sm align-middle mr-1">table_restaurant</span>
-          Mesas
-        </button>
-      </div>
-
-      <!-- Loading -->
-      <div v-if="loading" class="text-center py-12">
-        <div class="animate-spin w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full mx-auto"></div>
-        <p class="mt-4 text-gray-600">Cargando...</p>
-      </div>
-
-      <!-- Tab: Pedidos -->
-      <div v-else-if="tabActiva === 'pedidos'" class="space-y-4">
-        <div v-if="pedidos.length === 0" class="bg-white rounded-xl p-8 text-center">
-          <span class="material-symbols-outlined text-6xl text-gray-300">receipt_long</span>
-          <p class="mt-4 text-gray-500">No hay pedidos activos</p>
-        </div>
-
-        <div
-          v-for="pedido in pedidos"
-          :key="pedido.id"
-          class="bg-white rounded-xl shadow p-4"
-        >
-          <div class="flex items-center justify-between mb-3">
-            <div class="flex items-center gap-3">
-              <div class="bg-gray-100 px-3 py-1 rounded-lg">
-                <span class="font-bold text-gray-700">Mesa {{ pedido.mesa_id || '?' }}</span>
-              </div>
-              <span
-                :class="[
-                  'px-2 py-1 rounded-full text-xs font-medium',
-                  pedido.estado === 'pendiente' ? 'bg-yellow-100 text-yellow-700' :
-                  pedido.estado === 'preparando' ? 'bg-blue-100 text-blue-700' :
-                  pedido.estado === 'listo' ? 'bg-green-100 text-green-700' :
-                  'bg-gray-100 text-gray-700'
-                ]"
-              >
-                {{ pedido.estado?.toUpperCase() }}
-              </span>
-            </div>
-            <span class="text-sm text-gray-500">
-              {{ formatTime(pedido.created_at) }}
-            </span>
-          </div>
-
-          <!-- Items del pedido -->
-          <div class="border-t pt-3 space-y-2">
-            <div v-for="(item, idx) in pedido.items" :key="idx" class="flex justify-between text-sm">
-              <span>{{ item.cantidad || 1 }}x {{ item.nombre }}</span>
-              <span class="text-gray-600">{{ item.precio_total?.toFixed(2) }}€</span>
-            </div>
-          </div>
-
-          <!-- Total y acciones -->
-          <div class="border-t mt-3 pt-3 flex items-center justify-between">
-            <span class="font-bold text-lg">Total: {{ pedido.total?.toFixed(2) }}€</span>
-            <div class="flex gap-2">
-              <button
-                v-if="pedido.estado === 'listo'"
-                @click="cambiarEstado(pedido.id, 'entregado')"
-                class="bg-green-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-600 transition"
-              >
-                Marcar Entregado
-              </button>
-              <button
-                v-if="pedido.estado === 'pendiente'"
-                @click="cambiarEstado(pedido.id, 'preparando')"
-                class="bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-600 transition"
-              >
-                En Preparación
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Tab: Mesas -->
-      <div v-else-if="tabActiva === 'mesas'" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-        <div
-          v-for="mesa in mesas"
-          :key="mesa.numero"
-          :class="[
-            'bg-white rounded-xl p-4 text-center cursor-pointer transition hover:shadow-lg',
-            mesa.ocupada ? 'ring-2 ring-orange-500' : ''
-          ]"
-        >
-          <span class="material-symbols-outlined text-4xl" :class="mesa.ocupada ? 'text-orange-500' : 'text-gray-300'">
-            table_restaurant
-          </span>
-          <p class="font-bold text-lg mt-2">Mesa {{ mesa.numero }}</p>
-          <p :class="['text-xs', mesa.ocupada ? 'text-orange-500' : 'text-gray-400']">
-            {{ mesa.ocupada ? 'Ocupada' : 'Libre' }}
-          </p>
-          <p v-if="mesa.pedidos > 0" class="text-xs text-blue-500 mt-1">
-            {{ mesa.pedidos }} pedido(s)
-          </p>
-        </div>
-      </div>
-    </main>
-  </div>
-</template>
-
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { supabase } from '../supabase'
 
-const router = useRouter()
-
-const loading = ref(true)
-const tabActiva = ref('pedidos')
+// Estado
 const pedidos = ref([])
-const mesas = ref([])
-const pinDia = ref('1111')
+const mesaSeleccionada = ref(null)
+const loading = ref(true)
+const comensales = ref(2)
+const modoEdicion = ref(false)
+const mostrarModalProducto = ref(false)
 
-let subscription = null
+// Configuración de mesas
+const configuracionMesas = [
+  { id: '1', nombre: 'M1', tipo: 'cuadrada', zona: 'salon' },
+  { id: '2', nombre: 'M2', tipo: 'redonda', zona: 'salon' },
+  { id: '3', nombre: 'M3', tipo: 'cuadrada', zona: 'salon' },
+  { id: '4', nombre: 'M4', tipo: 'cuadrada', zona: 'salon' },
+  { id: '5', nombre: 'M5', tipo: 'redonda', zona: 'salon' },
+  { id: '6', nombre: 'M6', tipo: 'redonda', zona: 'salon' },
+  { id: '7', nombre: 'T1', tipo: 'cuadrada', zona: 'terraza' },
+  { id: '8', nombre: 'T2', tipo: 'cuadrada', zona: 'terraza' },
+  { id: '9', nombre: 'T3', tipo: 'cuadrada', zona: 'terraza' },
+  { id: '10', nombre: 'T4', tipo: 'cuadrada', zona: 'terraza' }
+]
 
-onMounted(async () => {
-  await cargarDatos()
-  suscribirPedidos()
-})
+// Obtener estado de una mesa
+const getEstadoMesa = (mesaId) => {
+  const pedidosMesa = pedidos.value.filter(p => p.mesa === mesaId && p.estado !== 'pagado')
+  if (pedidosMesa.length === 0) return 'libre'
+  const tieneCuentaPedida = pedidosMesa.some(p => p.estado === 'cuenta')
+  if (tieneCuentaPedida) return 'cuenta'
+  return 'ocupada'
+}
 
-onUnmounted(() => {
-  if (subscription) {
-    subscription.unsubscribe()
-  }
-})
+// Obtener pedidos de una mesa
+const getPedidosMesa = (mesaId) => {
+  return pedidos.value.filter(p => p.mesa === mesaId && p.estado !== 'pagado')
+}
 
-async function cargarDatos() {
-  loading.value = true
-  try {
-    // Cargar PIN del día
-    const { data: resData } = await supabase
-      .from('restaurantes')
-      .select('pin_dia')
-      .limit(1)
-      .single()
+// Calcular total de una mesa
+const getTotalMesa = (mesaId) => {
+  const pedidosMesa = getPedidosMesa(mesaId)
+  return pedidosMesa.reduce((acc, p) => acc + (p.total || 0), 0)
+}
 
-    if (resData?.pin_dia) {
-      pinDia.value = resData.pin_dia
-    }
-
-    // Cargar pedidos activos
-    const { data: pedidosData } = await supabase
-      .from('pedidos')
-      .select('*')
-      .in('estado', ['pendiente', 'preparando', 'listo'])
-      .order('created_at', { ascending: false })
-
-    pedidos.value = pedidosData || []
-
-    // Generar mesas (por ahora estáticas, luego desde BD)
-    const mesasArray = []
-    for (let i = 1; i <= 12; i++) {
-      const pedidosMesa = pedidos.value.filter(p => p.mesa_id === i)
-      mesasArray.push({
-        numero: i,
-        ocupada: pedidosMesa.length > 0,
-        pedidos: pedidosMesa.length
+// Items de la mesa seleccionada
+const getItemsMesa = computed(() => {
+  if (!mesaSeleccionada.value) return []
+  const pedidosMesa = getPedidosMesa(mesaSeleccionada.value.id)
+  const items = []
+  pedidosMesa.forEach(pedido => {
+    if (pedido.items && Array.isArray(pedido.items)) {
+      pedido.items.forEach((item, itemIndex) => {
+        items.push({ ...item, pedidoId: pedido.id, estadoPedido: pedido.estado, itemIndex })
       })
     }
-    mesas.value = mesasArray
+  })
+  return items
+})
 
+// Total de la mesa seleccionada
+const totalMesaSeleccionada = computed(() => {
+  if (!mesaSeleccionada.value) return 0
+  return getTotalMesa(mesaSeleccionada.value.id)
+})
+
+// Tiempo desde el primer pedido
+const tiempoMesa = (mesaId) => {
+  const pedidosMesa = getPedidosMesa(mesaId)
+  if (pedidosMesa.length === 0) return null
+  const primerPedido = pedidosMesa.reduce((oldest, p) => {
+    return new Date(p.created_at) < new Date(oldest.created_at) ? p : oldest
+  })
+  const minutos = Math.floor((Date.now() - new Date(primerPedido.created_at)) / 60000)
+  return minutos
+}
+
+// Hora de apertura de la mesa
+const horaAperturaMesa = computed(() => {
+  if (!mesaSeleccionada.value) return null
+  const pedidosMesa = getPedidosMesa(mesaSeleccionada.value.id)
+  if (pedidosMesa.length === 0) return null
+  const primerPedido = pedidosMesa.reduce((oldest, p) => {
+    return new Date(p.created_at) < new Date(oldest.created_at) ? p : oldest
+  })
+  const fecha = new Date(primerPedido.created_at)
+  return fecha.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
+})
+
+// Estado del item (basado en el estado del pedido)
+const getEstadoItem = (estadoPedido) => {
+  const estados = {
+    pendiente: { texto: 'Pendiente', color: 'text-yellow-500' },
+    preparando: { texto: 'En preparación', color: 'text-[#e27246]' },
+    listo: { texto: 'Listo', color: 'text-green-500' },
+    servido: { texto: 'Servido', color: 'text-gray-400' },
+    cuenta: { texto: 'Servido', color: 'text-gray-400' }
+  }
+  return estados[estadoPedido] || { texto: '', color: '' }
+}
+
+// Eliminar item de un pedido
+const eliminarItem = async (pedidoId, itemIndex) => {
+  const pedido = pedidos.value.find(p => p.id === pedidoId)
+  if (!pedido) return
+
+  const nuevosItems = [...pedido.items]
+  nuevosItems.splice(itemIndex, 1)
+
+  if (nuevosItems.length === 0) {
+    // Si no quedan items, eliminar el pedido
+    await supabase.from('pedidos').delete().eq('id', pedidoId)
+  } else {
+    // Recalcular total
+    const nuevoTotal = nuevosItems.reduce((acc, item) => acc + (item.precio * item.cantidad), 0)
+    await supabase.from('pedidos').update({ items: nuevosItems, total: nuevoTotal }).eq('id', pedidoId)
+  }
+  await cargarPedidos()
+}
+
+// Cambiar cantidad de un item
+const cambiarCantidadItem = async (pedidoId, itemIndex, delta) => {
+  const pedido = pedidos.value.find(p => p.id === pedidoId)
+  if (!pedido) return
+
+  const nuevosItems = [...pedido.items]
+  nuevosItems[itemIndex].cantidad += delta
+
+  if (nuevosItems[itemIndex].cantidad <= 0) {
+    nuevosItems.splice(itemIndex, 1)
+  }
+
+  if (nuevosItems.length === 0) {
+    await supabase.from('pedidos').delete().eq('id', pedidoId)
+  } else {
+    const nuevoTotal = nuevosItems.reduce((acc, item) => acc + (item.precio * item.cantidad), 0)
+    await supabase.from('pedidos').update({ items: nuevosItems, total: nuevoTotal }).eq('id', pedidoId)
+  }
+  await cargarPedidos()
+}
+
+// Cargar pedidos
+const cargarPedidos = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('pedidos')
+      .select('*')
+      .in('estado', ['pendiente', 'preparando', 'listo', 'servido', 'cuenta'])
+      .order('created_at', { ascending: false })
+
+    if (error) throw error
+    pedidos.value = data || []
   } catch (e) {
-    console.error('Error cargando datos:', e)
+    console.error('Error cargando pedidos:', e)
+    pedidos.value = []
   } finally {
     loading.value = false
   }
 }
 
-function suscribirPedidos() {
+// Suscripción en tiempo real
+let subscription = null
+
+const iniciarSuscripcion = () => {
   subscription = supabase
     .channel('pedidos-changes')
     .on('postgres_changes', { event: '*', schema: 'public', table: 'pedidos' }, () => {
-      cargarDatos()
+      cargarPedidos()
     })
     .subscribe()
 }
 
-async function cambiarEstado(pedidoId, nuevoEstado) {
-  try {
-    await supabase
-      .from('pedidos')
-      .update({ estado: nuevoEstado })
-      .eq('id', pedidoId)
-
-    await cargarDatos()
-  } catch (e) {
-    console.error('Error cambiando estado:', e)
+// Seleccionar mesa
+const seleccionarMesa = (mesa) => {
+  const estado = getEstadoMesa(mesa.id)
+  if (estado !== 'libre') {
+    mesaSeleccionada.value = mesa
   }
 }
 
-function formatTime(dateStr) {
-  if (!dateStr) return ''
-  const date = new Date(dateStr)
-  return date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
+// Pedir cuenta
+const pedirCuenta = async () => {
+  if (!mesaSeleccionada.value) return
+  const pedidosMesa = getPedidosMesa(mesaSeleccionada.value.id)
+  for (const pedido of pedidosMesa) {
+    await supabase.from('pedidos').update({ estado: 'cuenta' }).eq('id', pedido.id)
+  }
+  await cargarPedidos()
 }
 
-function cerrarSesion() {
-  sessionStorage.removeItem('userRole')
-  sessionStorage.removeItem('adminAuth')
-  router.push('/la-toscana/table/1')
+// Marcar como pagado
+const marcarPagado = async () => {
+  if (!mesaSeleccionada.value) return
+  const pedidosMesa = getPedidosMesa(mesaSeleccionada.value.id)
+  for (const pedido of pedidosMesa) {
+    await supabase.from('pedidos').update({ estado: 'pagado' }).eq('id', pedido.id)
+  }
+  mesaSeleccionada.value = null
+  await cargarPedidos()
 }
+
+const cerrarSidebar = () => {
+  mesaSeleccionada.value = null
+}
+
+onMounted(() => {
+  cargarPedidos()
+  iniciarSuscripcion()
+})
+
+onUnmounted(() => {
+  if (subscription) {
+    supabase.removeChannel(subscription)
+  }
+})
+
+// Colores
+const coloresEstado = {
+  libre: { bg: 'bg-green-500/20', border: 'border-green-500', text: 'text-green-500' },
+  ocupada: { bg: 'bg-amber-500/20', border: 'border-amber-500', text: 'text-amber-500' },
+  cuenta: { bg: 'bg-red-500/20', border: 'border-red-500', text: 'text-red-500' }
+}
+
+const etiquetaEstado = { libre: 'Libre', ocupada: 'Ocupada', cuenta: 'Cuenta' }
 </script>
+
+<template>
+  <div class="bg-[#0f1115] font-sans text-gray-100 min-h-screen overflow-hidden">
+    <div class="flex h-screen">
+      <!-- Main -->
+      <main class="flex-1 flex flex-col relative overflow-hidden">
+        <!-- Header -->
+        <header class="h-16 border-b border-gray-800 bg-[#1a1d23]/50 backdrop-blur-md px-6 flex items-center justify-between shrink-0">
+          <div class="flex items-center gap-4">
+            <div class="bg-[#e27246]/10 p-2 rounded-lg">
+              <span class="material-symbols-outlined text-[#e27246] text-2xl">grid_view</span>
+            </div>
+            <div>
+              <h1 class="text-lg font-extrabold tracking-tight">Gestión de Mesas</h1>
+              <p class="text-[10px] uppercase tracking-widest text-[#e27246] font-bold">La Toscana</p>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-6">
+            <div class="flex items-center gap-4 text-xs font-bold uppercase tracking-wider">
+              <div class="flex items-center gap-2">
+                <span class="w-3 h-3 rounded-full bg-green-500"></span>
+                <span class="text-gray-400">Libre</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="w-3 h-3 rounded-full bg-amber-500"></span>
+                <span class="text-gray-400">Ocupada</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="w-3 h-3 rounded-full bg-red-500"></span>
+                <span class="text-gray-400">Cuenta</span>
+              </div>
+            </div>
+            <button @click="cargarPedidos" class="bg-gray-800 p-2 rounded-xl hover:bg-gray-700 transition-colors">
+              <span class="material-symbols-outlined text-gray-400">refresh</span>
+            </button>
+          </div>
+        </header>
+
+        <!-- Grid -->
+        <div class="flex-1 relative overflow-auto p-8 md:p-12" style="background-image: radial-gradient(circle, #2d333d 1px, transparent 1px); background-size: 40px 40px;">
+          <div v-if="loading" class="flex items-center justify-center h-full">
+            <span class="material-symbols-outlined text-4xl text-gray-500 animate-spin">progress_activity</span>
+          </div>
+
+          <div v-else class="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-12 max-w-5xl mx-auto">
+            <button
+              v-for="mesa in configuracionMesas"
+              :key="mesa.id"
+              @click="seleccionarMesa(mesa)"
+              :class="[
+                'aspect-square border-4 group flex flex-col items-center justify-center gap-2 hover:scale-105 transition-all relative',
+                mesa.tipo === 'redonda' ? 'rounded-full' : 'rounded-2xl',
+                coloresEstado[getEstadoMesa(mesa.id)].bg,
+                coloresEstado[getEstadoMesa(mesa.id)].border,
+                getEstadoMesa(mesa.id) === 'cuenta' ? 'shadow-[0_0_20px_rgba(239,68,68,0.3)]' : ''
+              ]"
+            >
+              <div v-if="tiempoMesa(mesa.id)" class="absolute -top-2 -right-2 bg-amber-500 text-black text-[10px] font-black px-2 py-0.5 rounded-full">
+                {{ tiempoMesa(mesa.id) }} min
+              </div>
+              <span :class="['text-2xl font-black', coloresEstado[getEstadoMesa(mesa.id)].text]">{{ mesa.nombre }}</span>
+              <span v-if="getEstadoMesa(mesa.id) === 'cuenta'" class="material-symbols-outlined text-red-500 text-xl">payments</span>
+              <span :class="['text-[10px] font-bold uppercase', coloresEstado[getEstadoMesa(mesa.id)].text]">
+                {{ mesa.zona === 'terraza' ? 'Terraza' : etiquetaEstado[getEstadoMesa(mesa.id)] }}
+              </span>
+              <span v-if="getEstadoMesa(mesa.id) !== 'libre'" :class="['text-xs font-bold', coloresEstado[getEstadoMesa(mesa.id)].text]">
+                {{ getTotalMesa(mesa.id).toFixed(2) }}€
+              </span>
+            </button>
+
+            <div class="col-span-2 bg-gray-800/20 border-2 border-dashed border-gray-700 rounded-3xl flex items-center justify-center text-gray-600 font-bold uppercase tracking-widest text-sm h-24">
+              Barra de Servicio
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <!-- Sidebar -->
+      <aside v-if="mesaSeleccionada" class="w-full md:w-[420px] border-l border-gray-800 bg-[#1a1d23] flex flex-col z-50 fixed md:relative inset-0 md:inset-auto">
+        <!-- Header -->
+        <div class="p-6 border-b border-gray-800">
+          <div class="flex items-center justify-between mb-4">
+            <span :class="['px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-wide', getEstadoMesa(mesaSeleccionada.id) === 'cuenta' ? 'bg-red-500 text-white' : 'bg-amber-500 text-black']">
+              {{ getEstadoMesa(mesaSeleccionada.id) === 'cuenta' ? 'Cuenta Pedida' : 'En progreso' }}
+            </span>
+            <div class="flex items-center gap-2">
+              <span v-if="horaAperturaMesa" class="text-sm text-gray-400">Apertura: {{ horaAperturaMesa }}</span>
+              <button @click="cerrarSidebar" class="p-2 hover:bg-gray-800 rounded-lg ml-2">
+                <span class="material-symbols-outlined">close</span>
+              </button>
+            </div>
+          </div>
+          <div class="flex items-baseline gap-3">
+            <h2 class="text-3xl font-extrabold">Mesa {{ mesaSeleccionada.nombre }}</h2>
+            <div class="flex items-center gap-2">
+              <button @click="comensales > 1 && comensales--" class="w-6 h-6 rounded-full bg-gray-800 hover:bg-gray-700 flex items-center justify-center text-xs">-</button>
+              <span class="text-gray-400 text-sm">{{ comensales }} Comensales</span>
+              <button @click="comensales++" class="w-6 h-6 rounded-full bg-gray-800 hover:bg-gray-700 flex items-center justify-center text-xs">+</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Items List -->
+        <div class="flex-1 overflow-y-auto p-6">
+          <div v-if="getItemsMesa.length === 0" class="text-center py-10 text-gray-500">
+            <span class="material-symbols-outlined text-4xl mb-2">receipt_long</span>
+            <p>No hay pedidos</p>
+          </div>
+
+          <div class="space-y-4">
+            <div v-for="(item, index) in getItemsMesa" :key="index" class="group">
+              <div class="flex justify-between items-start">
+                <div class="flex-1">
+                  <div class="flex items-center gap-2">
+                    <h4 class="font-bold">
+                      <span class="text-gray-400">{{ item.cantidad }}x</span> {{ item.nombre }}
+                    </h4>
+                  </div>
+                  <p v-if="item.opciones" class="text-sm text-gray-500 italic mt-0.5">- {{ item.opciones }}</p>
+                  <p v-if="item.estadoPedido && item.estadoPedido !== 'servido' && item.estadoPedido !== 'cuenta'"
+                     :class="['text-sm font-medium mt-1', getEstadoItem(item.estadoPedido).color]">
+                    {{ getEstadoItem(item.estadoPedido).texto }}
+                  </p>
+                </div>
+                <div class="flex items-center gap-3">
+                  <span class="font-bold text-right">{{ (item.precio * item.cantidad).toFixed(2) }}€</span>
+                  <!-- Botones de edición -->
+                  <div v-if="modoEdicion" class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button @click="cambiarCantidadItem(item.pedidoId, item.itemIndex, -1)" class="w-6 h-6 rounded bg-gray-800 hover:bg-red-500/20 text-gray-400 hover:text-red-400 flex items-center justify-center">
+                      <span class="material-symbols-outlined text-sm">remove</span>
+                    </button>
+                    <button @click="cambiarCantidadItem(item.pedidoId, item.itemIndex, 1)" class="w-6 h-6 rounded bg-gray-800 hover:bg-green-500/20 text-gray-400 hover:text-green-400 flex items-center justify-center">
+                      <span class="material-symbols-outlined text-sm">add</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Totales -->
+          <div v-if="getItemsMesa.length > 0" class="mt-8 pt-4 border-t border-gray-800 space-y-2">
+            <div class="flex justify-between text-gray-400">
+              <span>Subtotal</span>
+              <span>{{ totalMesaSeleccionada.toFixed(2) }}€</span>
+            </div>
+            <div class="flex justify-between items-center pt-2">
+              <span class="text-xl font-bold">Total</span>
+              <span class="text-3xl font-black text-[#e27246]">{{ totalMesaSeleccionada.toFixed(2) }}€</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="p-6 bg-[#0f1115]/50 border-t border-gray-800 space-y-3">
+          <!-- Modificar y Añadir Producto -->
+          <div class="flex gap-3">
+            <button
+              @click="modoEdicion = !modoEdicion"
+              :class="[
+                'flex-1 flex items-center justify-center gap-2 font-bold py-3 rounded-full transition-all',
+                modoEdicion ? 'bg-[#e27246] text-white' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+              ]"
+            >
+              <span class="material-symbols-outlined text-lg">edit</span>
+              Modificar
+            </button>
+            <button
+              @click="mostrarModalProducto = true"
+              class="flex-1 flex items-center justify-center gap-2 bg-[#e27246]/20 text-[#e27246] font-bold py-3 rounded-full hover:bg-[#e27246]/30 transition-all"
+            >
+              <span class="material-symbols-outlined text-lg">add</span>
+              Producto
+            </button>
+          </div>
+
+          <!-- Pedir Cuenta / Marcar Pagado -->
+          <button
+            v-if="getEstadoMesa(mesaSeleccionada.id) !== 'cuenta'"
+            @click="pedirCuenta"
+            class="w-full flex items-center justify-center gap-2 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white font-black py-4 rounded-full transition-all uppercase tracking-widest text-sm border border-red-500/30 hover:border-red-500"
+          >
+            <span class="material-symbols-outlined">payments</span>
+            Pedir Cuenta
+          </button>
+          <button
+            v-else
+            @click="marcarPagado"
+            class="w-full flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white font-black py-4 rounded-full transition-all uppercase tracking-widest text-sm"
+          >
+            <span class="material-symbols-outlined">check_circle</span>
+            Marcar Pagado
+          </button>
+        </div>
+      </aside>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+</style>

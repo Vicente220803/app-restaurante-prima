@@ -8,7 +8,8 @@ import CocinaView from './views/CocinaView.vue'
 import ComandasView from './views/ComandasView.vue'
 import TableEntryView from './views/TableEntryView.vue'
 import CamareroView from './views/CamareroView.vue'
-
+import MenuNinosView from './views/MenuNinosView.vue'
+import MenuChefView from './views/MenuChefView.vue'
 const routes = [
   {
     path: '/:restaurantSlug/table/:tableNumber',
@@ -24,6 +25,16 @@ const routes = [
     path: '/:restaurantSlug/cart',
     name: 'Cart',
     component: CartView
+  },
+  {
+    path: '/:restaurantSlug/menu-ninos',
+    name: 'MenuNinos',
+    component: MenuNinosView
+  },
+  {
+    path: '/:restaurantSlug/menu-chef',
+    name: 'MenuChef',
+    component: MenuChefView
   },
   {
     path: '/admin/login',

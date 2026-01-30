@@ -1,11 +1,12 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { supabase } from '../supabase'
 import { useCartStore } from '../store/cart'
 import ProductModal from '../components/ProductModal.vue'
 
 const route = useRoute()
+const router = useRouter()
 const cartStore = useCartStore()
 
 const productos = ref([])
@@ -159,6 +160,26 @@ onMounted(async () => {
 
 // Seleccionar grupo
 const selectGrupo = (grupoId) => {
+  // Si es "Niños", navegar a la página especial del menú infantil
+  if (grupoId === 'Ninos') {
+    router.push({
+      name: 'MenuNinos',
+      params: { restaurantSlug },
+      query: { table: tableNumber }
+    })
+    return
+  }
+
+  // Si es "Promoción del Chef", navegar a la página especial
+  if (grupoId === 'Promocion del chef') {
+    router.push({
+      name: 'MenuChef',
+      params: { restaurantSlug },
+      query: { table: tableNumber }
+    })
+    return
+  }
+
   grupoActivo.value = grupoId
   subcategoriaActiva.value = null
 }
@@ -229,23 +250,26 @@ const getCategoryIcon = (nombre) => {
             {{ grupoActivo ? tituloSeccion : (restaurante.nombre || 'La Toscana') }}
           </h2>
         </div>
-        <div class="flex items-center gap-4">
-          <div class="hidden md:flex flex-col items-end mr-2">
+        <div class="flex items-center gap-2">
+          <div class="hidden md:flex flex-col items-end">
             <span class="text-xs text-slate-500 dark:text-[#cba590] font-medium">Ubicación</span>
             <span class="text-sm font-bold text-[#da540b]">Mesa {{ tableNumber }}</span>
           </div>
-          <button class="flex min-w-[84px] cursor-pointer items-center justify-center rounded-xl h-10 px-4 bg-[#da540b] text-white text-sm font-bold shadow-lg shadow-[#da540b]/20 hover:bg-[#da540b]/90 transition-all">
+          <button class="flex cursor-pointer items-center justify-center rounded-xl h-10 px-3 bg-[#da540b] text-white text-sm font-bold shadow-lg shadow-[#da540b]/20 hover:bg-[#da540b]/90 transition-all">
             <span>Mesa {{ tableNumber }}</span>
           </button>
-          <!-- Cart button -->
+          <!-- Cart button with Ver Pedido -->
           <button
             @click="$router.push(`/${restaurantSlug}/cart?table=${tableNumber}`)"
-            class="relative bg-slate-100 dark:bg-[#493022] p-2.5 rounded-full"
+            class="flex items-center gap-2 bg-slate-100 dark:bg-[#493022] px-3 py-2 rounded-xl hover:bg-slate-200 dark:hover:bg-[#5a3a2a] transition-colors"
           >
             <span class="material-symbols-outlined text-slate-600 dark:text-[#cba590]">shopping_cart</span>
+            <span v-if="cartStore.countItems > 0" class="text-sm font-bold text-slate-700 dark:text-white">
+              Ver Pedido
+            </span>
             <span
               v-if="cartStore.countItems > 0"
-              class="absolute -top-1 -right-1 bg-[#da540b] text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold"
+              class="bg-[#da540b] text-white text-xs min-w-[20px] h-5 px-1 rounded-full flex items-center justify-center font-bold"
             >
               {{ cartStore.countItems }}
             </span>
@@ -272,7 +296,7 @@ const getCategoryIcon = (nombre) => {
           </div>
 
           <!-- Category Grid -->
-          <main class="flex-1 px-6 md:px-10 pb-32">
+          <main class="flex-1 px-6 md:px-10 pb-10">
             <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
               <div
                 v-for="(grupo, index) in gruposMenu"
@@ -338,7 +362,7 @@ const getCategoryIcon = (nombre) => {
           </div>
 
           <!-- Products Grid -->
-          <main class="flex-1 px-6 md:px-10 pb-32">
+          <main class="flex-1 px-6 md:px-10 pb-10">
             <!-- Empty State -->
             <div v-if="productosFiltrados.length === 0" class="text-center py-16">
               <span class="material-symbols-outlined text-6xl text-slate-300 dark:text-[#493022]">restaurant</span>
@@ -404,31 +428,7 @@ const getCategoryIcon = (nombre) => {
         </template>
       </template>
 
-      <!-- Fixed Bottom Order Bar -->
-      <div
-        v-if="cartStore.countItems > 0"
-        class="fixed bottom-0 left-0 right-0 p-6 flex justify-center z-[100] pointer-events-none"
-      >
-        <div class="w-full max-w-[960px] pointer-events-auto">
-          <button
-            @click="$router.push(`/${restaurantSlug}/cart?table=${tableNumber}`)"
-            class="w-full flex items-center justify-between overflow-hidden rounded-2xl h-16 px-6 bg-[#da540b] text-white text-lg font-bold shadow-2xl shadow-[#da540b]/40 hover:translate-y-[-2px] active:translate-y-[1px] transition-all group"
-          >
-            <div class="flex items-center gap-4">
-              <div class="bg-white/20 p-2 rounded-lg group-hover:bg-white/30 transition-colors">
-                <span class="material-symbols-outlined">shopping_cart</span>
-              </div>
-              <span class="truncate">Ver Pedido</span>
-            </div>
-            <div class="flex items-center gap-3">
-              <span class="text-sm font-medium opacity-80">{{ cartStore.countItems }} artículos</span>
-              <div class="w-px h-6 bg-white/20"></div>
-              <span class="text-xl">{{ cartStore.totalCart.toFixed(2) }}€</span>
-            </div>
-          </button>
-        </div>
       </div>
-    </div>
 
     <!-- Product Modal -->
     <ProductModal
