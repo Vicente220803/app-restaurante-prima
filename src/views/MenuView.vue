@@ -14,6 +14,12 @@ const categorias = ref([])
 const restaurante = ref({})
 const loading = ref(true)
 
+// Modo camarero - cuando el camarero está añadiendo productos
+const modoCamarero = ref(false)
+const camareroMesa = ref(null)
+const camareroPedidoId = ref(null)
+const guardandoPedido = ref(false)
+
 // Navegación: grupo > subcategoría > productos
 const grupoActivo = ref(null)
 const subcategoriaActiva = ref(null)
@@ -127,6 +133,16 @@ const tituloSeccion = computed(() => {
 
 // Cargar datos
 onMounted(async () => {
+  // Detectar modo camarero
+  const modoParam = route.query.modo
+  if (modoParam === 'camarero') {
+    modoCamarero.value = true
+    camareroMesa.value = sessionStorage.getItem('camarero_mesa')
+    camareroPedidoId.value = sessionStorage.getItem('camarero_pedido_id')
+    // Limpiar carrito al entrar en modo camarero para empezar limpio
+    cartStore.clearCart()
+  }
+
   try {
     // 1. Cargar restaurante
     const { data: resData } = await supabase
@@ -157,6 +173,73 @@ onMounted(async () => {
     loading.value = false
   }
 })
+
+// Guardar productos añadidos por el camarero al pedido existente
+const guardarProductosCamarero = async () => {
+  if (!modoCamarero.value || cartStore.items.length === 0) return
+
+  guardandoPedido.value = true
+
+  try {
+    // Preparar los nuevos items
+    const nuevosItems = cartStore.items.map(item => ({
+      nombre: item.nombre,
+      cantidad: item.cantidad,
+      precio: item.precioTotal,
+      opciones: item.opcionesResumen?.map(o => o.nombre).join(', ') || null
+    }))
+
+    if (camareroPedidoId.value && camareroPedidoId.value !== 'null') {
+      // Añadir al pedido existente
+      const { data: pedidoActual } = await supabase
+        .from('pedidos')
+        .select('items, total')
+        .eq('id', camareroPedidoId.value)
+        .single()
+
+      if (pedidoActual) {
+        const itemsActualizados = [...(pedidoActual.items || []), ...nuevosItems]
+        const nuevoTotal = itemsActualizados.reduce((acc, item) => acc + (item.precio * item.cantidad), 0)
+
+        await supabase
+          .from('pedidos')
+          .update({ items: itemsActualizados, total: nuevoTotal })
+          .eq('id', camareroPedidoId.value)
+      }
+    } else {
+      // Crear nuevo pedido para esta mesa
+      await supabase
+        .from('pedidos')
+        .insert({
+          mesa: camareroMesa.value,
+          items: nuevosItems,
+          total: cartStore.totalCart,
+          estado: 'pendiente'
+        })
+    }
+
+    // Limpiar y volver a la vista del camarero
+    cartStore.clearCart()
+    sessionStorage.removeItem('camarero_mesa')
+    sessionStorage.removeItem('camarero_pedido_id')
+    sessionStorage.removeItem('camarero_modo')
+
+    router.push('/camarero')
+  } catch (error) {
+    console.error('Error guardando productos:', error)
+  } finally {
+    guardandoPedido.value = false
+  }
+}
+
+// Cancelar modo camarero
+const cancelarModoCamarero = () => {
+  cartStore.clearCart()
+  sessionStorage.removeItem('camarero_mesa')
+  sessionStorage.removeItem('camarero_pedido_id')
+  sessionStorage.removeItem('camarero_modo')
+  router.push('/camarero')
+}
 
 // Seleccionar grupo
 const selectGrupo = (grupoId) => {
@@ -251,29 +334,72 @@ const getCategoryIcon = (nombre) => {
           </h2>
         </div>
         <div class="flex items-center gap-2">
-          <div class="hidden md:flex flex-col items-end">
-            <span class="text-xs text-slate-500 dark:text-[#cba590] font-medium">Ubicación</span>
-            <span class="text-sm font-bold text-[#da540b]">Mesa {{ tableNumber }}</span>
-          </div>
-          <button class="flex cursor-pointer items-center justify-center rounded-xl h-10 px-3 bg-[#da540b] text-white text-sm font-bold shadow-lg shadow-[#da540b]/20 hover:bg-[#da540b]/90 transition-all">
-            <span>Mesa {{ tableNumber }}</span>
-          </button>
-          <!-- Cart button with Ver Pedido -->
-          <button
-            @click="$router.push(`/${restaurantSlug}/cart?table=${tableNumber}`)"
-            class="flex items-center gap-2 bg-slate-100 dark:bg-[#493022] px-3 py-2 rounded-xl hover:bg-slate-200 dark:hover:bg-[#5a3a2a] transition-colors"
-          >
-            <span class="material-symbols-outlined text-slate-600 dark:text-[#cba590]">shopping_cart</span>
-            <span v-if="cartStore.countItems > 0" class="text-sm font-bold text-slate-700 dark:text-white">
-              Ver Pedido
-            </span>
-            <span
-              v-if="cartStore.countItems > 0"
-              class="bg-[#da540b] text-white text-xs min-w-[20px] h-5 px-1 rounded-full flex items-center justify-center font-bold"
+          <!-- Modo Camarero -->
+          <template v-if="modoCamarero">
+            <div class="flex items-center gap-2 bg-amber-500/20 px-3 py-1 rounded-lg">
+              <span class="material-symbols-outlined text-amber-500 text-sm">badge</span>
+              <span class="text-xs font-bold text-amber-500">CAMARERO</span>
+            </div>
+            <div class="bg-[#da540b] text-white text-sm font-bold px-3 py-2 rounded-xl">
+              Mesa {{ camareroMesa }}
+            </div>
+            <!-- Botón Cancelar -->
+            <button
+              @click="cancelarModoCamarero"
+              class="flex items-center gap-2 bg-slate-200 dark:bg-gray-700 px-3 py-2 rounded-xl hover:bg-slate-300 dark:hover:bg-gray-600 transition-colors"
             >
-              {{ cartStore.countItems }}
-            </span>
-          </button>
+              <span class="material-symbols-outlined text-slate-600 dark:text-gray-300 text-sm">close</span>
+              <span class="text-sm font-bold text-slate-700 dark:text-gray-300">Cancelar</span>
+            </button>
+            <!-- Botón Guardar -->
+            <button
+              @click="guardarProductosCamarero"
+              :disabled="cartStore.countItems === 0 || guardandoPedido"
+              :class="[
+                'flex items-center gap-2 px-4 py-2 rounded-xl transition-all font-bold text-sm',
+                cartStore.countItems > 0
+                  ? 'bg-green-500 hover:bg-green-600 text-white shadow-lg shadow-green-500/20'
+                  : 'bg-slate-300 dark:bg-gray-700 text-slate-500 dark:text-gray-500 cursor-not-allowed'
+              ]"
+            >
+              <span v-if="guardandoPedido" class="material-symbols-outlined animate-spin text-sm">progress_activity</span>
+              <span v-else class="material-symbols-outlined text-sm">save</span>
+              <span>Guardar</span>
+              <span
+                v-if="cartStore.countItems > 0"
+                class="bg-white/20 text-white text-xs min-w-[20px] h-5 px-1 rounded-full flex items-center justify-center font-bold"
+              >
+                {{ cartStore.countItems }}
+              </span>
+            </button>
+          </template>
+
+          <!-- Modo Cliente Normal -->
+          <template v-else>
+            <div class="hidden md:flex flex-col items-end">
+              <span class="text-xs text-slate-500 dark:text-[#cba590] font-medium">Ubicación</span>
+              <span class="text-sm font-bold text-[#da540b]">Mesa {{ tableNumber }}</span>
+            </div>
+            <button class="flex cursor-pointer items-center justify-center rounded-xl h-10 px-3 bg-[#da540b] text-white text-sm font-bold shadow-lg shadow-[#da540b]/20 hover:bg-[#da540b]/90 transition-all">
+              <span>Mesa {{ tableNumber }}</span>
+            </button>
+            <!-- Cart button with Ver Pedido -->
+            <button
+              @click="$router.push(`/${restaurantSlug}/cart?table=${tableNumber}`)"
+              class="flex items-center gap-2 bg-slate-100 dark:bg-[#493022] px-3 py-2 rounded-xl hover:bg-slate-200 dark:hover:bg-[#5a3a2a] transition-colors"
+            >
+              <span class="material-symbols-outlined text-slate-600 dark:text-[#cba590]">shopping_cart</span>
+              <span v-if="cartStore.countItems > 0" class="text-sm font-bold text-slate-700 dark:text-white">
+                Ver Pedido
+              </span>
+              <span
+                v-if="cartStore.countItems > 0"
+                class="bg-[#da540b] text-white text-xs min-w-[20px] h-5 px-1 rounded-full flex items-center justify-center font-bold"
+              >
+                {{ cartStore.countItems }}
+              </span>
+            </button>
+          </template>
         </div>
       </header>
 

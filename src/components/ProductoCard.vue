@@ -3,7 +3,7 @@
     <!-- Imagen del producto -->
     <div class="relative">
       <div class="aspect-square bg-neutral-50 flex items-center justify-center">
-        <ChefHat class="w-16 h-16 text-neutral-300" />
+        <span class="material-symbols-outlined text-6xl text-neutral-300">restaurant</span>
       </div>
 
       <!-- Badge de disponibilidad -->
@@ -37,7 +37,7 @@
           {{ producto.precio_base }}€
         </span>
         <button
-          @click.stop="manejarClickAñadir" 
+          @click.stop="manejarClickAñadir"
           :disabled="!producto.disponible"
           class="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors font-medium text-sm disabled:bg-gray-300 disabled:cursor-not-allowed"
         >
@@ -49,38 +49,26 @@
 </template>
 
 <script setup>
-import { defineProps, defineEmits } from 'vue';
-import { ChefHat } from 'lucide-vue-next';
-
-// *** LA CORRECCIÓN CRÍTICA ESTÁ AQUÍ (de 'stores' a 'store') ***
-import { useCartStore } from '../store/cart'; 
-
 const props = defineProps({
   producto: {
     type: Object,
     required: true
   }
-});
+})
 
-const cartStore = useCartStore(); 
-
-const emit = defineEmits(['click']); 
+const emit = defineEmits(['click'])
 
 const manejarClickAñadir = () => {
-  if (!props.producto.disponible) return;
-  
-  // Emite el evento para que MenuView.vue abra el modal
-  emit('click'); 
-};
-
+  if (!props.producto.disponible) return
+  emit('click')
+}
 </script>
 
 <style scoped>
 .line-clamp-2 {
   display: -webkit-box;
-  -webkit-line-clam
-  
-  p: 2;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }

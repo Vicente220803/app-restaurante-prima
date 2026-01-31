@@ -1,169 +1,198 @@
 <template>
-  <div class="bg-[#0f2316] font-display text-white min-h-screen">
+  <div class="bg-[#0f1115] font-display text-white min-h-screen">
     <!-- Header Section -->
-    <header class="sticky top-0 z-50 flex items-center justify-between border-b border-white/10 bg-[#0f2316]/80 px-6 py-4 backdrop-blur-md lg:px-20">
+    <header class="sticky top-0 z-50 flex items-center justify-between border-b border-white/10 bg-[#0f1115]/90 px-6 py-4 backdrop-blur-md">
       <div class="flex items-center gap-3">
-        <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-[#33ff77]/20 text-[#33ff77]">
-          <span class="material-symbols-outlined text-[28px]">restaurant</span>
+        <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-orange-500/20 text-orange-500">
+          <span class="material-symbols-outlined text-3xl">skillet</span>
         </div>
         <div>
-          <h1 class="text-xl font-bold tracking-tight text-white uppercase">Kitchen Pass</h1>
-          <p class="text-[10px] font-medium tracking-widest text-[#33ff77] uppercase opacity-80">Real-time Delivery Alerts</p>
+          <h1 class="text-xl font-bold tracking-tight text-white">Cocina</h1>
+          <p class="text-xs font-medium tracking-widest text-orange-500 uppercase">La Toscana</p>
         </div>
       </div>
-      <div class="flex items-center gap-6">
-        <div class="hidden flex-col items-end md:flex">
-          <span class="text-lg font-bold tabular-nums">{{ horaActual }}</span>
-          <span class="text-[10px] uppercase tracking-wider text-slate-500">System Live</span>
+      <div class="flex items-center gap-4">
+        <div class="flex items-center gap-2 text-sm">
+          <span class="relative flex h-2 w-2">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-500 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+          </span>
+          <span class="text-gray-400">En vivo</span>
         </div>
+        <div class="text-2xl font-bold tabular-nums text-white">{{ horaActual }}</div>
         <button
           @click="cerrarSesion"
-          class="flex h-12 w-12 items-center justify-center rounded-xl bg-white/5 text-white hover:bg-red-500/20 hover:text-red-400 transition-all"
+          class="flex h-10 w-10 items-center justify-center rounded-xl bg-white/5 text-gray-400 hover:bg-red-500/20 hover:text-red-400 transition-all"
         >
           <span class="material-symbols-outlined">logout</span>
         </button>
       </div>
     </header>
 
-    <main class="mx-auto flex w-full max-w-[1200px] flex-1 flex-col gap-6 px-4 py-8 lg:px-10">
-      <!-- Headline Status -->
-      <div class="flex flex-col items-center justify-between gap-4 md:flex-row md:px-4">
-        <h2 class="text-3xl font-bold tracking-tight">
-          Orders <span class="text-[#33ff77] underline decoration-[#33ff77]/30 underline-offset-8">Ready to Serve</span>
-        </h2>
-        <div class="flex items-center gap-2 rounded-full bg-[#33ff77]/10 px-4 py-2 text-[#33ff77] border border-[#33ff77]/20">
-          <span class="relative flex h-2 w-2">
-            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#33ff77] opacity-75"></span>
-            <span class="relative inline-flex rounded-full h-2 w-2 bg-[#33ff77]"></span>
+    <main class="p-6">
+      <!-- Tabs de estado -->
+      <div class="flex gap-4 mb-6">
+        <button
+          @click="tabActiva = 'pendiente'"
+          :class="[
+            'flex items-center gap-2 px-5 py-3 rounded-xl font-bold transition-all',
+            tabActiva === 'pendiente'
+              ? 'bg-yellow-500 text-black'
+              : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+          ]"
+        >
+          <span class="material-symbols-outlined">schedule</span>
+          Nuevos
+          <span v-if="pedidosPendientes.length > 0" class="bg-black/20 px-2 py-0.5 rounded-full text-sm">
+            {{ pedidosPendientes.length }}
           </span>
-          <span class="text-sm font-bold uppercase tracking-widest">{{ pedidosListos.length }} Active Alerts</span>
-        </div>
+        </button>
+        <button
+          @click="tabActiva = 'preparando'"
+          :class="[
+            'flex items-center gap-2 px-5 py-3 rounded-xl font-bold transition-all',
+            tabActiva === 'preparando'
+              ? 'bg-orange-500 text-white'
+              : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+          ]"
+        >
+          <span class="material-symbols-outlined">local_fire_department</span>
+          Preparando
+          <span v-if="pedidosPreparando.length > 0" class="bg-black/20 px-2 py-0.5 rounded-full text-sm">
+            {{ pedidosPreparando.length }}
+          </span>
+        </button>
+        <button
+          @click="tabActiva = 'listo'"
+          :class="[
+            'flex items-center gap-2 px-5 py-3 rounded-xl font-bold transition-all',
+            tabActiva === 'listo'
+              ? 'bg-green-500 text-white'
+              : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+          ]"
+        >
+          <span class="material-symbols-outlined">check_circle</span>
+          Listos
+          <span v-if="pedidosListos.length > 0" class="bg-black/20 px-2 py-0.5 rounded-full text-sm">
+            {{ pedidosListos.length }}
+          </span>
+        </button>
       </div>
 
       <!-- Loading -->
       <div v-if="loading" class="text-center py-20">
-        <div class="animate-spin w-12 h-12 border-4 border-[#33ff77] border-t-transparent rounded-full mx-auto"></div>
-        <p class="mt-4 text-slate-400">Cargando pedidos...</p>
+        <div class="animate-spin w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full mx-auto"></div>
+        <p class="mt-4 text-gray-400">Cargando pedidos...</p>
       </div>
 
-      <!-- No hay pedidos -->
-      <div v-else-if="pedidosListos.length === 0" class="text-center py-20">
-        <span class="material-symbols-outlined text-8xl text-slate-700">check_circle</span>
-        <p class="mt-4 text-2xl text-slate-500">No hay pedidos listos</p>
-        <p class="text-slate-600">Los pedidos apareceran aqui cuando esten listos</p>
-      </div>
+      <!-- Lista de pedidos -->
+      <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <!-- Sin pedidos -->
+        <div v-if="pedidosFiltrados.length === 0" class="col-span-full text-center py-20">
+          <span class="material-symbols-outlined text-6xl text-gray-700">
+            {{ tabActiva === 'pendiente' ? 'inbox' : tabActiva === 'preparando' ? 'skillet' : 'check_circle' }}
+          </span>
+          <p class="mt-4 text-xl text-gray-500">
+            {{ tabActiva === 'pendiente' ? 'No hay pedidos nuevos' : tabActiva === 'preparando' ? 'No hay pedidos en preparación' : 'No hay pedidos listos' }}
+          </p>
+        </div>
 
-      <!-- Active Alerts Grid -->
-      <div v-else class="grid grid-cols-1 gap-6">
-        <!-- Card para cada pedido -->
+        <!-- Cards de pedidos -->
         <div
-          v-for="(pedido, index) in pedidosListos"
+          v-for="pedido in pedidosFiltrados"
           :key="pedido.id"
           :class="[
-            'group relative overflow-hidden rounded-xl bg-[#152a1c] p-1',
-            index === 0 ? 'glow-card urgent-pulse' : 'glow-card'
+            'rounded-2xl overflow-hidden border-2 transition-all',
+            pedido.estado === 'pendiente' ? 'bg-yellow-500/10 border-yellow-500/30' : '',
+            pedido.estado === 'preparando' ? 'bg-orange-500/10 border-orange-500/30' : '',
+            pedido.estado === 'listo' ? 'bg-green-500/10 border-green-500/30' : ''
           ]"
         >
-          <div class="flex flex-col lg:flex-row">
-            <!-- Visual/Dish Thumbnail -->
-            <div class="h-48 w-full lg:h-auto lg:w-72 shrink-0">
-              <div
-                class="h-full w-full bg-cover bg-center bg-slate-800 flex items-center justify-center"
-                :style="pedido.items?.[0]?.imagen_url ? `background-image: url('${pedido.items[0].imagen_url}')` : ''"
-              >
-                <span v-if="!pedido.items?.[0]?.imagen_url" class="material-symbols-outlined text-6xl text-slate-600">restaurant</span>
-              </div>
+          <!-- Header del pedido -->
+          <div :class="[
+            'px-5 py-4 flex items-center justify-between',
+            pedido.estado === 'pendiente' ? 'bg-yellow-500/20' : '',
+            pedido.estado === 'preparando' ? 'bg-orange-500/20' : '',
+            pedido.estado === 'listo' ? 'bg-green-500/20' : ''
+          ]">
+            <div>
+              <span class="text-xs font-bold uppercase tracking-widest text-gray-400">Mesa</span>
+              <h3 class="text-3xl font-black">{{ pedido.mesa }}</h3>
             </div>
+            <div class="text-right">
+              <span :class="[
+                'inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold uppercase',
+                pedido.estado === 'pendiente' ? 'bg-yellow-500 text-black' : '',
+                pedido.estado === 'preparando' ? 'bg-orange-500 text-white' : '',
+                pedido.estado === 'listo' ? 'bg-green-500 text-white' : ''
+              ]">
+                <span class="material-symbols-outlined text-sm">
+                  {{ pedido.estado === 'pendiente' ? 'schedule' : pedido.estado === 'preparando' ? 'local_fire_department' : 'check_circle' }}
+                </span>
+                {{ pedido.estado === 'pendiente' ? 'Nuevo' : pedido.estado === 'preparando' ? 'Preparando' : 'Listo' }}
+              </span>
+              <p class="text-xs text-gray-500 mt-1">{{ tiempoDesde(pedido.created_at) }}</p>
+            </div>
+          </div>
 
-            <!-- Details Content -->
-            <div class="flex flex-1 flex-col justify-between p-6 lg:p-8">
-              <div class="flex flex-col justify-between gap-4 xl:flex-row xl:items-start">
-                <div>
-                  <span class="text-xs font-bold uppercase tracking-[0.2em]" :class="index === 0 ? 'text-[#33ff77]/80' : 'text-slate-400'">Mesa</span>
-                  <h3 class="text-6xl font-bold tracking-tighter text-white lg:text-7xl">MESA {{ pedido.mesa_id || '?' }}</h3>
-                </div>
-                <div class="flex flex-col gap-2 xl:text-right">
-                  <span class="text-xs font-bold uppercase tracking-[0.2em]" :class="index === 0 ? 'text-[#33ff77]/80' : 'text-slate-400'">Contenido</span>
-                  <p class="text-xl font-medium text-[#8dcea3]">
-                    {{ formatItems(pedido.items) }}
-                  </p>
-                  <div class="mt-2 flex items-center gap-2 text-sm font-semibold xl:justify-end" :class="index === 0 ? 'text-amber-500' : 'text-slate-400'">
-                    <span class="material-symbols-outlined text-sm">schedule</span>
-                    <span>{{ tiempoEspera(pedido.updated_at || pedido.created_at) }}</span>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Interactive Delivery Button -->
-              <div class="mt-8">
-                <button
-                  @click="marcarEntregado(pedido.id)"
-                  :class="[
-                    'swipe-track group/btn relative flex w-full items-center justify-center overflow-hidden rounded-lg py-6 transition-all active:scale-[0.98]',
-                    index === 0
-                      ? 'border border-[#33ff77]/30 hover:bg-[#33ff77]/10'
-                      : 'border border-[#33ff77]/10 hover:bg-[#33ff77]/5'
-                  ]"
-                >
-                  <div
-                    :class="[
-                      'absolute left-4 flex h-10 w-10 items-center justify-center rounded-full shadow-lg transition-all duration-300',
-                      index === 0
-                        ? 'bg-[#33ff77] text-[#0f2316] shadow-[#33ff77]/40 group-hover/btn:translate-x-4'
-                        : 'bg-white/10 text-white group-hover/btn:bg-[#33ff77] group-hover/btn:text-[#0f2316]'
-                    ]"
-                  >
-                    <span class="material-symbols-outlined font-bold">arrow_forward</span>
-                  </div>
-                  <span
-                    :class="[
-                      'text-lg font-black uppercase tracking-[0.2em]',
-                      index === 0 ? 'text-[#33ff77]' : 'text-slate-400 group-hover/btn:text-[#33ff77]'
-                    ]"
-                  >
-                    {{ index === 0 ? 'Slide to Deliver' : 'Deliver Order' }}
-                  </span>
-                </button>
+          <!-- Items del pedido -->
+          <div class="p-5 space-y-3">
+            <div
+              v-for="(item, idx) in pedido.items"
+              :key="idx"
+              class="flex items-start gap-3 pb-3 border-b border-gray-800 last:border-0 last:pb-0"
+            >
+              <span class="bg-gray-800 text-white font-bold text-sm w-8 h-8 rounded-lg flex items-center justify-center shrink-0">
+                {{ item.cantidad }}
+              </span>
+              <div class="flex-1">
+                <h4 class="font-bold text-white">{{ item.nombre }}</h4>
+                <p v-if="item.opciones" class="text-sm text-orange-400 mt-0.5">{{ item.opciones }}</p>
               </div>
             </div>
           </div>
 
-          <!-- Urgent Indicator Ribbon -->
-          <div v-if="index === 0" class="absolute top-0 right-0 bg-[#33ff77] px-4 py-1 text-[10px] font-black uppercase tracking-widest text-[#0f2316]">
-            Urgent
+          <!-- Acciones -->
+          <div class="p-4 bg-black/20 border-t border-gray-800">
+            <!-- Pedido Pendiente -> Marcar como Preparando -->
+            <button
+              v-if="pedido.estado === 'pendiente'"
+              @click="cambiarEstado(pedido.id, 'preparando')"
+              class="w-full flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 text-white font-bold py-4 rounded-xl transition-all"
+            >
+              <span class="material-symbols-outlined">local_fire_department</span>
+              Empezar a Preparar
+            </button>
+
+            <!-- Pedido Preparando -> Marcar como Listo -->
+            <button
+              v-if="pedido.estado === 'preparando'"
+              @click="cambiarEstado(pedido.id, 'listo')"
+              class="w-full flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white font-bold py-4 rounded-xl transition-all"
+            >
+              <span class="material-symbols-outlined">check_circle</span>
+              Marcar como Listo
+            </button>
+
+            <!-- Pedido Listo -> Info -->
+            <div v-if="pedido.estado === 'listo'" class="text-center text-green-400 font-bold py-2">
+              <span class="material-symbols-outlined align-middle mr-1">notifications_active</span>
+              Esperando recogida
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- Dashboard Footer Info -->
-      <footer class="mt-12 flex flex-col items-center justify-between border-t border-white/5 py-8 md:flex-row">
-        <div class="flex gap-8">
-          <div class="flex flex-col">
-            <span class="text-[10px] font-bold uppercase tracking-widest text-slate-500">Pedidos Hoy</span>
-            <div class="mt-1 flex items-baseline gap-2">
-              <span class="text-2xl font-bold">{{ estadisticas.total }}</span>
-            </div>
-          </div>
-          <div class="flex flex-col">
-            <span class="text-[10px] font-bold uppercase tracking-widest text-slate-500">Entregados</span>
-            <div class="mt-1 flex items-baseline gap-2">
-              <span class="text-2xl font-bold text-[#33ff77]">{{ estadisticas.entregados }}</span>
-            </div>
-          </div>
-        </div>
-        <div class="mt-6 flex items-center gap-4 md:mt-0">
-          <button class="flex items-center gap-2 rounded-lg bg-white/5 px-4 py-2 text-sm font-semibold transition-colors hover:bg-white/10">
-            <span class="material-symbols-outlined text-sm">history</span>
-            Ver Historial
-          </button>
-        </div>
-      </footer>
+      <!-- Sonido de notificación para nuevos pedidos -->
+      <audio ref="audioNotificacion" preload="auto">
+        <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2teleQwWVK7c5bKFLhZAptTpwY05G0Sa0NnNilIuTp3M07+JTi1SoszTvIhOLlKgytG6h0suUqDK0bmGSi1Sn8nRuIZKLVKeyNG3hkotUp7I0LeGSi1SnsjQt4ZKLVKA" type="audio/wav"/>
+      </audio>
     </main>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { supabase } from '../supabase'
 
@@ -172,26 +201,36 @@ const router = useRouter()
 const loading = ref(true)
 const pedidos = ref([])
 const horaActual = ref('')
+const tabActiva = ref('pendiente')
+const audioNotificacion = ref(null)
 
 let subscription = null
 let clockInterval = null
+let ultimosPedidosPendientes = 0
 
-// Pedidos listos para entregar
-const pedidosListos = computed(() => {
-  return pedidos.value.filter(p => p.estado === 'listo')
+// Filtrar pedidos por estado
+const pedidosPendientes = computed(() => pedidos.value.filter(p => p.estado === 'pendiente'))
+const pedidosPreparando = computed(() => pedidos.value.filter(p => p.estado === 'preparando'))
+const pedidosListos = computed(() => pedidos.value.filter(p => p.estado === 'listo'))
+
+// Pedidos según tab activa
+const pedidosFiltrados = computed(() => {
+  if (tabActiva.value === 'pendiente') return pedidosPendientes.value
+  if (tabActiva.value === 'preparando') return pedidosPreparando.value
+  return pedidosListos.value
 })
 
-// Estadisticas
-const estadisticas = computed(() => {
-  const hoy = new Date().toDateString()
-  const pedidosHoy = pedidos.value.filter(p => {
-    const fecha = new Date(p.created_at)
-    return fecha.toDateString() === hoy
-  })
-  return {
-    total: pedidosHoy.length,
-    entregados: pedidosHoy.filter(p => p.estado === 'entregado').length
+// Reproducir sonido cuando llega un nuevo pedido
+watch(pedidosPendientes, (nuevos) => {
+  if (nuevos.length > ultimosPedidosPendientes && ultimosPedidosPendientes > 0) {
+    // Hay un nuevo pedido
+    if (audioNotificacion.value) {
+      audioNotificacion.value.play().catch(() => {})
+    }
+    // Cambiar a la pestaña de pendientes automáticamente
+    tabActiva.value = 'pendiente'
   }
+  ultimosPedidosPendientes = nuevos.length
 })
 
 onMounted(async () => {
@@ -199,10 +238,11 @@ onMounted(async () => {
   suscribirPedidos()
   actualizarReloj()
   clockInterval = setInterval(actualizarReloj, 1000)
+  ultimosPedidosPendientes = pedidosPendientes.value.length
 })
 
 onUnmounted(() => {
-  if (subscription) subscription.unsubscribe()
+  if (subscription) supabase.removeChannel(subscription)
   if (clockInterval) clearInterval(clockInterval)
 })
 
@@ -220,8 +260,8 @@ async function cargarPedidos() {
     const { data } = await supabase
       .from('pedidos')
       .select('*')
-      .in('estado', ['listo', 'entregado'])
-      .order('updated_at', { ascending: false })
+      .in('estado', ['pendiente', 'preparando', 'listo'])
+      .order('created_at', { ascending: true })
 
     pedidos.value = data || []
   } catch (e) {
@@ -233,37 +273,34 @@ async function cargarPedidos() {
 
 function suscribirPedidos() {
   subscription = supabase
-    .channel('cocina-pedidos')
+    .channel('cocina-pedidos-realtime')
     .on('postgres_changes', { event: '*', schema: 'public', table: 'pedidos' }, () => {
       cargarPedidos()
     })
     .subscribe()
 }
 
-async function marcarEntregado(pedidoId) {
+async function cambiarEstado(pedidoId, nuevoEstado) {
   try {
     await supabase
       .from('pedidos')
-      .update({ estado: 'entregado', updated_at: new Date().toISOString() })
+      .update({ estado: nuevoEstado, updated_at: new Date().toISOString() })
       .eq('id', pedidoId)
 
     await cargarPedidos()
   } catch (e) {
-    console.error('Error marcando entregado:', e)
+    console.error('Error cambiando estado:', e)
   }
 }
 
-function formatItems(items) {
-  if (!items || !Array.isArray(items)) return 'Sin items'
-  return items.map(i => `${i.cantidad || 1}x ${i.nombre}`).join(', ')
-}
-
-function tiempoEspera(fecha) {
-  if (!fecha) return 'Ahora'
+function tiempoDesde(fecha) {
+  if (!fecha) return ''
   const diff = Math.floor((Date.now() - new Date(fecha).getTime()) / 1000 / 60)
-  if (diff < 1) return 'Ahora'
+  if (diff < 1) return 'Ahora mismo'
   if (diff === 1) return 'Hace 1 min'
-  return `Hace ${diff}m`
+  if (diff < 60) return `Hace ${diff} min`
+  const horas = Math.floor(diff / 60)
+  return `Hace ${horas}h ${diff % 60}m`
 }
 
 function cerrarSesion() {
@@ -274,23 +311,27 @@ function cerrarSesion() {
 </script>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
-
 .font-display {
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
 }
 
-.glow-card {
-  box-shadow: 0 0 20px rgba(51, 255, 119, 0.15);
-  border: 1px solid rgba(51, 255, 119, 0.2);
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
-.urgent-pulse {
-  box-shadow: 0 0 35px rgba(51, 255, 119, 0.3);
-  border: 2px solid rgba(51, 255, 119, 0.5);
+.animate-spin {
+  animation: spin 1s linear infinite;
 }
 
-.swipe-track {
-  background: linear-gradient(90deg, rgba(51, 255, 119, 0.1) 0%, rgba(51, 255, 119, 0) 100%);
+@keyframes ping {
+  75%, 100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+.animate-ping {
+  animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
 }
 </style>
