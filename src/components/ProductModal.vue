@@ -145,6 +145,10 @@ function handleAdd() {
     }
   })
 
+  // Obtener categoría del producto
+  const categoria = props.product?.categorias?.nombre || props.product?.categoria_nombre || ''
+  const grupo = props.product?.categorias?.grupo || ''
+
   // Añadir al carrito
   for (let i = 0; i < cantidad.value; i++) {
     cartStore.addToCart({
@@ -155,7 +159,9 @@ function handleAdd() {
       precioTotal: props.product.precio_base + precioExtra,
       opcionesIds: { ...selecciones.value },
       opcionesResumen: opcionesElegidas,
-      instrucciones: instrucciones.value
+      instrucciones: instrucciones.value,
+      categoria: categoria,
+      grupo: grupo
     })
   }
 

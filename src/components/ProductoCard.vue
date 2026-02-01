@@ -73,3 +73,4 @@ const manejarClickAñadir = () => {
   overflow: hidden;
 }
 </style>
+

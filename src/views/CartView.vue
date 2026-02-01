@@ -38,11 +38,16 @@ const confirmarPedido = async () => {
 
   try {
     // Preparar los items para guardar en Supabase
+    const ahora = new Date().toISOString()
     const itemsParaGuardar = cartStore.items.map(item => ({
       nombre: item.nombre,
       cantidad: item.cantidad,
       precio: item.precioTotal,
-      opciones: item.opcionesResumen?.map(o => o.nombre).join(', ') || null
+      opciones: item.opcionesResumen?.map(o => o.nombre).join(', ') || null,
+      instrucciones: item.instrucciones || null,
+      categoria: item.categoria || null,
+      grupo: item.grupo || null,
+      added_at: ahora
     }))
 
     // Guardar el pedido en Supabase

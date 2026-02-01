@@ -108,6 +108,13 @@
             pedido.estado === 'listo' ? 'bg-green-500/10 border-green-500/30' : ''
           ]"
         >
+          <!-- Alerta de pedido actualizado -->
+          <div v-if="tieneItemsRecientes(pedido)" class="bg-purple-500 text-white px-4 py-2 flex items-center gap-2 animate-pulse-bg">
+            <span class="material-symbols-outlined text-lg">notification_important</span>
+            <span class="font-bold text-sm uppercase tracking-wide">¡Pedido Actualizado!</span>
+            <span class="text-xs opacity-80">- Nuevos items añadidos</span>
+          </div>
+
           <!-- Header del pedido -->
           <div :class="[
             'px-5 py-4 flex items-center justify-between',
@@ -135,19 +142,34 @@
             </div>
           </div>
 
-          <!-- Items del pedido -->
+          <!-- Items del pedido (solo cocina, sin bebidas) -->
           <div class="p-5 space-y-3">
             <div
-              v-for="(item, idx) in pedido.items"
+              v-for="(item, idx) in filtrarItemsCocina(pedido.items)"
               :key="idx"
-              class="flex items-start gap-3 pb-3 border-b border-gray-800 last:border-0 last:pb-0"
+              :class="[
+                'flex items-start gap-3 pb-3 border-b border-gray-800 last:border-0 last:pb-0 rounded-lg transition-all',
+                esItemReciente(pedido, item) ? 'bg-purple-500/20 p-2 -mx-2 border-purple-500/30' : ''
+              ]"
             >
-              <span class="bg-gray-800 text-white font-bold text-sm w-8 h-8 rounded-lg flex items-center justify-center shrink-0">
+              <span :class="[
+                'font-bold text-sm w-8 h-8 rounded-lg flex items-center justify-center shrink-0',
+                esItemReciente(pedido, item) ? 'bg-purple-500 text-white' : 'bg-gray-800 text-white'
+              ]">
                 {{ item.cantidad }}
               </span>
               <div class="flex-1">
-                <h4 class="font-bold text-white">{{ item.nombre }}</h4>
+                <div class="flex items-center gap-2">
+                  <h4 class="font-bold text-white">{{ item.nombre }}</h4>
+                  <span v-if="esItemReciente(pedido, item)" class="bg-purple-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">
+                    Nuevo
+                  </span>
+                </div>
                 <p v-if="item.opciones" class="text-sm text-orange-400 mt-0.5">{{ item.opciones }}</p>
+                <p v-if="item.instrucciones" class="text-sm text-yellow-400 mt-1 flex items-center gap-1 bg-yellow-400/10 px-2 py-1 rounded">
+                  <span class="material-symbols-outlined text-xs">priority_high</span>
+                  {{ item.instrucciones }}
+                </p>
               </div>
             </div>
           </div>
@@ -208,10 +230,63 @@ let subscription = null
 let clockInterval = null
 let ultimosPedidosPendientes = 0
 
-// Filtrar pedidos por estado
-const pedidosPendientes = computed(() => pedidos.value.filter(p => p.estado === 'pendiente'))
-const pedidosPreparando = computed(() => pedidos.value.filter(p => p.estado === 'preparando'))
-const pedidosListos = computed(() => pedidos.value.filter(p => p.estado === 'listo'))
+// Filtrar items de cocina (solo excluir si el grupo es "Bebida")
+const filtrarItemsCocina = (items) => {
+  if (!items || !Array.isArray(items)) return []
+  return items.filter(item => {
+    const grupo = (item.grupo || '').toLowerCase()
+    // Solo excluir si el grupo es exactamente "bebida"
+    return grupo !== 'bebida'
+  })
+}
+
+// Detectar si un pedido tiene items añadidos recientemente (después de 3 minutos desde la creación)
+const tieneItemsRecientes = (pedido) => {
+  if (!pedido || !pedido.items || !Array.isArray(pedido.items)) return false
+
+  const createdAt = new Date(pedido.created_at).getTime()
+  const margenMinutos = 3 * 60 * 1000 // 3 minutos en milisegundos
+  const ahora = Date.now()
+  const recienteMs = 10 * 60 * 1000 // Items añadidos en los últimos 10 minutos
+
+  // Buscar items que fueron añadidos después de created_at + margen
+  return pedido.items.some(item => {
+    if (!item.added_at) return false
+    const itemAddedAt = new Date(item.added_at).getTime()
+    // El item fue añadido al menos 3 min después de crear el pedido Y hace menos de 10 min
+    return itemAddedAt > (createdAt + margenMinutos) && (ahora - itemAddedAt) < recienteMs
+  })
+}
+
+// Verificar si un item específico es reciente
+const esItemReciente = (pedido, item) => {
+  if (!pedido || !item || !item.added_at) return false
+
+  const createdAt = new Date(pedido.created_at).getTime()
+  const margenMinutos = 3 * 60 * 1000 // 3 minutos
+  const ahora = Date.now()
+  const recienteMs = 10 * 60 * 1000 // 10 minutos
+  const itemAddedAt = new Date(item.added_at).getTime()
+
+  return itemAddedAt > (createdAt + margenMinutos) && (ahora - itemAddedAt) < recienteMs
+}
+
+// Filtrar pedidos por estado (solo mostrar si tienen items de cocina)
+const pedidosPendientes = computed(() => {
+  return pedidos.value
+    .filter(p => p.estado === 'pendiente')
+    .filter(p => filtrarItemsCocina(p.items).length > 0)
+})
+const pedidosPreparando = computed(() => {
+  return pedidos.value
+    .filter(p => p.estado === 'preparando')
+    .filter(p => filtrarItemsCocina(p.items).length > 0)
+})
+const pedidosListos = computed(() => {
+  return pedidos.value
+    .filter(p => p.estado === 'listo')
+    .filter(p => filtrarItemsCocina(p.items).length > 0)
+})
 
 // Pedidos según tab activa
 const pedidosFiltrados = computed(() => {
@@ -282,12 +357,24 @@ function suscribirPedidos() {
 
 async function cambiarEstado(pedidoId, nuevoEstado) {
   try {
-    await supabase
+    const { error } = await supabase
       .from('pedidos')
-      .update({ estado: nuevoEstado, updated_at: new Date().toISOString() })
+      .update({ estado: nuevoEstado })
       .eq('id', pedidoId)
 
+    if (error) {
+      console.error('Error actualizando pedido:', error)
+      return
+    }
+
     await cargarPedidos()
+
+    // Cambiar automáticamente a la pestaña correspondiente
+    if (nuevoEstado === 'preparando') {
+      tabActiva.value = 'preparando'
+    } else if (nuevoEstado === 'listo') {
+      tabActiva.value = 'listo'
+    }
   } catch (e) {
     console.error('Error cambiando estado:', e)
   }
@@ -333,5 +420,18 @@ function cerrarSesion() {
 
 .animate-ping {
   animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+@keyframes pulse-bg {
+  0%, 100% {
+    background-color: rgb(168 85 247);
+  }
+  50% {
+    background-color: rgb(126 34 206);
+  }
+}
+
+.animate-pulse-bg {
+  animation: pulse-bg 2s ease-in-out infinite;
 }
 </style>

@@ -12,18 +12,24 @@ const loading = ref(true)
 const itemEditando = ref(null)
 const modalEdicion = ref(false)
 
-// Configuración de mesas
+// Configuración de mesas - Salón (10 mesas: 5 cuadradas + 5 rectangulares) + Terraza (3 cuadradas)
 const configuracionMesas = [
+  // Salón - Cuadradas
   { id: '1', nombre: 'M1', tipo: 'cuadrada', zona: 'salon' },
-  { id: '2', nombre: 'M2', tipo: 'redonda', zona: 'salon' },
+  { id: '2', nombre: 'M2', tipo: 'cuadrada', zona: 'salon' },
   { id: '3', nombre: 'M3', tipo: 'cuadrada', zona: 'salon' },
   { id: '4', nombre: 'M4', tipo: 'cuadrada', zona: 'salon' },
-  { id: '5', nombre: 'M5', tipo: 'redonda', zona: 'salon' },
-  { id: '6', nombre: 'M6', tipo: 'redonda', zona: 'salon' },
-  { id: '7', nombre: 'T1', tipo: 'cuadrada', zona: 'terraza' },
-  { id: '8', nombre: 'T2', tipo: 'cuadrada', zona: 'terraza' },
-  { id: '9', nombre: 'T3', tipo: 'cuadrada', zona: 'terraza' },
-  { id: '10', nombre: 'T4', tipo: 'cuadrada', zona: 'terraza' }
+  { id: '5', nombre: 'M5', tipo: 'cuadrada', zona: 'salon' },
+  // Salón - Rectangulares
+  { id: '6', nombre: 'M6', tipo: 'rectangular', zona: 'salon' },
+  { id: '7', nombre: 'M7', tipo: 'rectangular', zona: 'salon' },
+  { id: '8', nombre: 'M8', tipo: 'rectangular', zona: 'salon' },
+  { id: '9', nombre: 'M9', tipo: 'rectangular', zona: 'salon' },
+  { id: '10', nombre: 'M10', tipo: 'rectangular', zona: 'salon' },
+  // Terraza - Cuadradas
+  { id: '11', nombre: 'T1', tipo: 'cuadrada', zona: 'terraza' },
+  { id: '12', nombre: 'T2', tipo: 'cuadrada', zona: 'terraza' },
+  { id: '13', nombre: 'T3', tipo: 'cuadrada', zona: 'terraza' }
 ]
 
 // Obtener estado de una mesa
@@ -317,8 +323,8 @@ const etiquetaEstado = { libre: 'Libre', ocupada: 'Ocupada', cuenta: 'Cuenta' }
               :key="mesa.id"
               @click="seleccionarMesa(mesa)"
               :class="[
-                'aspect-square border-4 group flex flex-col items-center justify-center gap-2 hover:scale-105 transition-all relative',
-                mesa.tipo === 'redonda' ? 'rounded-full' : 'rounded-2xl',
+                'border-4 group flex flex-col items-center justify-center gap-2 hover:scale-105 transition-all relative rounded-2xl',
+                mesa.tipo === 'rectangular' ? 'aspect-[2/1]' : 'aspect-square',
                 coloresEstado[getEstadoMesa(mesa.id)].bg,
                 coloresEstado[getEstadoMesa(mesa.id)].border,
                 getEstadoMesa(mesa.id) === 'cuenta' ? 'shadow-[0_0_20px_rgba(239,68,68,0.3)]' : ''
@@ -337,8 +343,9 @@ const etiquetaEstado = { libre: 'Libre', ocupada: 'Ocupada', cuenta: 'Cuenta' }
               </span>
             </button>
 
-            <div class="col-span-2 bg-gray-800/20 border-2 border-dashed border-gray-700 rounded-3xl flex items-center justify-center text-gray-600 font-bold uppercase tracking-widest text-sm h-24">
-              Barra de Servicio
+            <div class="col-span-2 md:col-span-1 bg-gray-800/20 border-2 border-dashed border-gray-700 rounded-xl flex items-center justify-center text-gray-600 font-medium uppercase tracking-wider text-xs h-16">
+              <span class="material-symbols-outlined text-sm mr-2">local_bar</span>
+              Barra
             </div>
           </div>
         </div>
@@ -379,6 +386,10 @@ const etiquetaEstado = { libre: 'Libre', ocupada: 'Ocupada', cuenta: 'Cuenta' }
                     </h4>
                   </div>
                   <p v-if="item.opciones" class="text-sm text-gray-500 italic mt-0.5">- {{ item.opciones }}</p>
+                  <p v-if="item.instrucciones" class="text-sm text-yellow-500 mt-1 flex items-center gap-1">
+                    <span class="material-symbols-outlined text-xs">chat</span>
+                    {{ item.instrucciones }}
+                  </p>
                   <p v-if="item.estadoPedido && item.estadoPedido !== 'servido' && item.estadoPedido !== 'cuenta'"
                      :class="['text-sm font-medium mt-1', getEstadoItem(item.estadoPedido).color]">
                     {{ getEstadoItem(item.estadoPedido).texto }}

@@ -182,11 +182,16 @@ const guardarProductosCamarero = async () => {
 
   try {
     // Preparar los nuevos items
+    const ahora = new Date().toISOString()
     const nuevosItems = cartStore.items.map(item => ({
       nombre: item.nombre,
       cantidad: item.cantidad,
       precio: item.precioTotal,
-      opciones: item.opcionesResumen?.map(o => o.nombre).join(', ') || null
+      opciones: item.opcionesResumen?.map(o => o.nombre).join(', ') || null,
+      instrucciones: item.instrucciones || null,
+      categoria: item.categoria || null,
+      grupo: item.grupo || null,
+      added_at: ahora
     }))
 
     if (camareroPedidoId.value && camareroPedidoId.value !== 'null') {
