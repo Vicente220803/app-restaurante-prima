@@ -1,35 +1,93 @@
 <template>
-  <div class="bg-[#0f1115] font-display text-white min-h-screen">
-    <!-- Header Section -->
-    <header class="sticky top-0 z-50 flex items-center justify-between border-b border-white/10 bg-[#0f1115]/90 px-6 py-4 backdrop-blur-md">
-      <div class="flex items-center gap-3">
-        <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-orange-500/20 text-orange-500">
-          <span class="material-symbols-outlined text-3xl">skillet</span>
-        </div>
-        <div>
-          <h1 class="text-xl font-bold tracking-tight text-white">Cocina</h1>
-          <p class="text-xs font-medium tracking-widest text-orange-500 uppercase">La Toscana</p>
+  <div class="bg-[#0f1115] font-display text-white min-h-screen flex">
+    <!-- Sidebar de Navegación -->
+    <aside class="w-64 border-r border-gray-800/50 bg-[#0a0b0d] flex flex-col shrink-0">
+      <!-- Logo -->
+      <div class="p-5 border-b border-gray-800/50">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[#e27246] to-[#c25f38] flex items-center justify-center">
+            <span class="material-symbols-outlined text-white text-xl">restaurant</span>
+          </div>
+          <div>
+            <h1 class="font-black text-lg tracking-tight">La Toscana</h1>
+            <p class="text-[10px] text-gray-500 uppercase tracking-widest">Sistema TPV</p>
+          </div>
         </div>
       </div>
-      <div class="flex items-center gap-4">
-        <div class="flex items-center gap-2 text-sm">
-          <span class="relative flex h-2 w-2">
-            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-500 opacity-75"></span>
-            <span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-          </span>
-          <span class="text-gray-400">En vivo</span>
-        </div>
-        <div class="text-2xl font-bold tabular-nums text-white">{{ horaActual }}</div>
+
+      <!-- Navegación -->
+      <nav class="flex-1 p-4 space-y-2">
+        <router-link
+          to="/camarero"
+          class="flex items-center gap-3 px-4 py-3 text-gray-400 hover:bg-gray-800/50 hover:text-white rounded-xl transition-all"
+        >
+          <span class="material-symbols-outlined">table_restaurant</span>
+          <span>SALÓN</span>
+        </router-link>
+
+        <router-link
+          to="/admin/productos"
+          class="flex items-center gap-3 px-4 py-3 text-gray-400 hover:bg-gray-800/50 hover:text-white rounded-xl transition-all"
+        >
+          <span class="material-symbols-outlined">restaurant_menu</span>
+          <span>PRODUCTOS</span>
+        </router-link>
+
+        <router-link
+          to="/cocina"
+          class="flex items-center gap-3 px-4 py-3 bg-[#e27246]/10 text-[#e27246] rounded-xl font-semibold"
+        >
+          <span class="material-symbols-outlined">soup_kitchen</span>
+          <span>Cocina</span>
+        </router-link>
+
+        <router-link
+          to="/gestion"
+          class="flex items-center gap-3 px-4 py-3 text-gray-400 hover:bg-gray-800/50 hover:text-white rounded-xl transition-all"
+        >
+          <span class="material-symbols-outlined">admin_panel_settings</span>
+          <span>GESTIÓN</span>
+        </router-link>
+      </nav>
+
+      <!-- Footer del sidebar -->
+      <div class="p-4 border-t border-gray-800/50">
         <button
           @click="cerrarSesion"
-          class="flex h-10 w-10 items-center justify-center rounded-xl bg-white/5 text-gray-400 hover:bg-red-500/20 hover:text-red-400 transition-all"
+          class="w-full py-3 border border-gray-700 text-gray-400 text-sm font-medium rounded-xl hover:bg-gray-800 hover:text-white transition-all flex items-center justify-center gap-2"
         >
-          <span class="material-symbols-outlined">logout</span>
+          <span class="material-symbols-outlined text-sm">logout</span>
+          Cerrar Sesión
         </button>
       </div>
-    </header>
+    </aside>
 
-    <main class="p-6">
+    <!-- Contenido Principal -->
+    <div class="flex-1 flex flex-col">
+      <!-- Header Section -->
+      <header class="sticky top-0 z-50 flex items-center justify-between border-b border-white/10 bg-[#0f1115]/90 px-6 py-4 backdrop-blur-md">
+        <div class="flex items-center gap-3">
+          <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-orange-500/20 text-orange-500">
+            <span class="material-symbols-outlined text-3xl">skillet</span>
+          </div>
+          <div>
+            <h1 class="text-xl font-bold tracking-tight text-white">Cocina</h1>
+            <p class="text-xs font-medium tracking-widest text-orange-500 uppercase">Pedidos en tiempo real</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-4">
+          <div class="flex items-center gap-2 text-sm">
+            <span class="relative flex h-2 w-2">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-500 opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+            </span>
+            <span class="text-gray-400">En vivo</span>
+          </div>
+          <div class="text-2xl font-bold tabular-nums text-white">{{ horaActual }}</div>
+        </div>
+      </header>
+
+      <main class="p-6 flex-1 overflow-auto">
       <!-- Tabs de estado -->
       <div class="flex gap-4 mb-6">
         <button
@@ -209,7 +267,8 @@
       <audio ref="audioNotificacion" preload="auto">
         <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2teleQwWVK7c5bKFLhZAptTpwY05G0Sa0NnNilIuTp3M07+JTi1SoszTvIhOLlKgytG6h0suUqDK0bmGSi1Sn8nRuIZKLVKeyNG3hkotUp7I0LeGSi1SnsjQt4ZKLVKA" type="audio/wav"/>
       </audio>
-    </main>
+      </main>
+    </div>
   </div>
 </template>
 

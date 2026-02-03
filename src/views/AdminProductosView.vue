@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { supabase } from '../supabase'
 
@@ -13,6 +13,7 @@ const categorias = ref([])
 const productoSeleccionado = ref(null)
 const searchQuery = ref('')
 const mensaje = ref({ tipo: '', texto: '' })
+const tabActiva = ref('basico') // 'basico', 'inventario'
 
 // Estado del formulario
 const formulario = ref({
@@ -21,18 +22,20 @@ const formulario = ref({
   precio_base: 0,
   categoria_id: null,
   disponible: true,
-  imagen_url: ''
+  imagen_url: '',
+  stock: 999,
+  alergenos: ''
 })
 
 // Estado de extras/opciones
 const gruposOpciones = ref([])
 const nuevoGrupo = ref({ nombre: '', es_obligatorio: false })
-const nuevaOpcion = ref({ grupo_id: null, nombre: '', precio_adicional: 0 })
 
 // Archivo de imagen seleccionado
 const imagenFile = ref(null)
 const imagenPreview = ref('')
 const subiendoImagen = ref(false)
+const imagenesGaleria = ref([]) // Para galería de imágenes
 
 // Productos filtrados por búsqueda y agrupados por categoría
 const productosFiltrados = computed(() => {
@@ -87,10 +90,13 @@ async function seleccionarProducto(producto) {
     precio_base: producto.precio_base,
     categoria_id: producto.categoria_id,
     disponible: producto.disponible,
-    imagen_url: producto.imagen_url || ''
+    imagen_url: producto.imagen_url || '',
+    stock: producto.stock || 999,
+    alergenos: producto.alergenos || ''
   }
   imagenPreview.value = producto.imagen_url || ''
   imagenFile.value = null
+  tabActiva.value = 'basico'
 
   // Cargar grupos de opciones del producto
   await cargarGruposOpciones(producto.id)
@@ -114,11 +120,23 @@ function nuevoProducto() {
     precio_base: 0,
     categoria_id: categorias.value[0]?.id || null,
     disponible: true,
-    imagen_url: ''
+    imagen_url: '',
+    stock: 999,
+    alergenos: ''
   }
   imagenPreview.value = ''
   imagenFile.value = null
   gruposOpciones.value = []
+  tabActiva.value = 'basico'
+}
+
+// Descartar cambios
+function descartarCambios() {
+  if (productoSeleccionado.value?.id === 'nuevo') {
+    productoSeleccionado.value = null
+  } else if (productoSeleccionado.value) {
+    seleccionarProducto(productoSeleccionado.value)
+  }
 }
 
 // Manejar selección de imagen
@@ -178,7 +196,6 @@ async function guardarProducto() {
     }
 
     if (esNuevo) {
-      // Crear producto nuevo
       const { data, error } = await supabase
         .from('productos')
         .insert(datosProducto)
@@ -207,7 +224,6 @@ async function guardarProducto() {
     mostrarMensaje('exito', esNuevo ? 'Producto creado correctamente' : 'Cambios guardados')
     await cargarProductos()
 
-    // Actualizar selección con datos frescos
     const productoActualizado = productos.value.find(p => p.id === productoId)
     if (productoActualizado) {
       await seleccionarProducto(productoActualizado)
@@ -368,61 +384,67 @@ function mostrarMensaje(tipo, texto) {
 function cerrarSesion() {
   sessionStorage.removeItem('adminAuth')
   sessionStorage.removeItem('userRole')
-  router.push('/la-toscana/table/1')
+  router.push('/admin/login')
 }
 </script>
 
 <template>
-  <div class="bg-[#fafafa] dark:bg-[#16181d] text-slate-900 dark:text-slate-100 min-h-screen flex overflow-hidden font-[Manrope]">
-    <!-- Sidebar Navigation -->
-    <aside class="w-64 border-r border-slate-200 dark:border-[#3a3f4a] flex flex-col bg-[#fafafa] dark:bg-[#16181d] shrink-0">
-      <div class="p-6 flex items-center gap-3">
-        <div class="size-10 bg-[#ff851a] rounded-lg flex items-center justify-center text-white">
-          <span class="material-symbols-outlined">restaurant</span>
-        </div>
-        <div>
-          <h1 class="font-bold text-base leading-tight">La Toscana</h1>
-          <p class="text-xs text-slate-500 dark:text-slate-400">Panel Gerente</p>
+  <div class="bg-[#0a0b0d] font-sans text-white min-h-screen flex">
+    <!-- Sidebar de Navegación -->
+    <aside class="w-64 border-r border-gray-800/50 bg-[#0f1115] flex flex-col shrink-0">
+      <!-- Logo -->
+      <div class="p-5 border-b border-gray-800/50">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[#e27246] to-[#c25f38] flex items-center justify-center">
+            <span class="material-symbols-outlined text-white text-xl">restaurant</span>
+          </div>
+          <div>
+            <h1 class="font-black text-lg tracking-tight">La Toscana</h1>
+            <p class="text-[10px] text-gray-500 uppercase tracking-widest">Sistema TPV</p>
+          </div>
         </div>
       </div>
 
-      <nav class="flex-1 px-4 space-y-1">
+      <!-- Navegación -->
+      <nav class="flex-1 p-4 space-y-2">
+        <router-link
+          to="/camarero"
+          class="flex items-center gap-3 px-4 py-3 text-gray-400 hover:bg-gray-800/50 hover:text-white rounded-xl transition-all"
+        >
+          <span class="material-symbols-outlined">table_restaurant</span>
+          <span>SALÓN</span>
+        </router-link>
+
         <router-link
           to="/admin/productos"
-          class="flex items-center gap-3 px-3 py-2.5 bg-[#ff851a]/10 text-[#ff851a] rounded-lg"
+          class="flex items-center gap-3 px-4 py-3 bg-[#e27246]/10 text-[#e27246] rounded-xl font-semibold"
         >
           <span class="material-symbols-outlined">restaurant_menu</span>
-          <span class="text-sm font-semibold">Gestión Menú</span>
+          <span>PRODUCTOS</span>
         </router-link>
 
         <router-link
           to="/cocina"
-          class="flex items-center gap-3 px-3 py-2.5 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-[#272a30] rounded-lg transition-colors"
+          class="flex items-center gap-3 px-4 py-3 text-gray-400 hover:bg-gray-800/50 hover:text-white rounded-xl transition-all"
         >
           <span class="material-symbols-outlined">soup_kitchen</span>
-          <span class="text-sm font-medium">Cocina</span>
+          <span>Cocina</span>
         </router-link>
 
         <router-link
-          to="/camarero"
-          class="flex items-center gap-3 px-3 py-2.5 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-[#272a30] rounded-lg transition-colors"
+          to="/gestion"
+          class="flex items-center gap-3 px-4 py-3 text-gray-400 hover:bg-gray-800/50 hover:text-white rounded-xl transition-all"
         >
-          <span class="material-symbols-outlined">room_service</span>
-          <span class="text-sm font-medium">Camarero</span>
+          <span class="material-symbols-outlined">admin_panel_settings</span>
+          <span>GESTIÓN</span>
         </router-link>
       </nav>
 
-      <div class="p-4 border-t border-slate-200 dark:border-[#3a3f4a] space-y-2">
-        <router-link
-          to="/la-toscana/table/1"
-          class="w-full py-2.5 bg-[#ff851a] text-white text-sm font-bold rounded-lg hover:bg-orange-600 transition-colors flex items-center justify-center gap-2"
-        >
-          <span class="material-symbols-outlined text-sm">visibility</span>
-          Ver Menú Cliente
-        </router-link>
+      <!-- Footer del sidebar -->
+      <div class="p-4 border-t border-gray-800/50">
         <button
           @click="cerrarSesion"
-          class="w-full py-2.5 border border-slate-300 dark:border-[#3a3f4a] text-slate-600 dark:text-slate-400 text-sm font-medium rounded-lg hover:bg-slate-100 dark:hover:bg-[#272a30] transition-colors flex items-center justify-center gap-2"
+          class="w-full py-3 border border-gray-700 text-gray-400 text-sm font-medium rounded-xl hover:bg-gray-800 hover:text-white transition-all flex items-center justify-center gap-2"
         >
           <span class="material-symbols-outlined text-sm">logout</span>
           Cerrar Sesión
@@ -430,25 +452,24 @@ function cerrarSesion() {
       </div>
     </aside>
 
-    <!-- Lista de Productos Panel -->
-    <div class="w-80 border-r border-slate-200 dark:border-[#3a3f4a] flex flex-col bg-slate-50 dark:bg-[#1c1f26] shrink-0">
-      <div class="p-4 space-y-3">
-        <!-- Buscador -->
+    <!-- Panel de Lista de Productos -->
+    <div class="w-80 border-r border-gray-800/50 flex flex-col bg-[#0f1115] shrink-0">
+      <!-- Header con búsqueda -->
+      <div class="p-4 space-y-3 border-b border-gray-800/50">
         <div class="relative">
-          <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">search</span>
+          <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-xl">search</span>
           <input
             v-model="searchQuery"
-            class="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-[#272a30] border-none rounded-xl text-sm focus:ring-2 focus:ring-[#ff851a] dark:text-white placeholder-slate-400"
-            placeholder="Buscar platos..."
+            class="w-full pl-10 pr-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-sm focus:ring-2 focus:ring-[#e27246] focus:border-transparent text-white placeholder-gray-500"
+            placeholder="Buscar productos..."
             type="text"
           />
         </div>
-        <!-- Botón nuevo producto -->
         <button
           @click="nuevoProducto"
-          class="w-full py-2.5 bg-[#ff851a]/20 text-[#ff851a] text-sm font-bold rounded-lg hover:bg-[#ff851a]/30 transition-colors flex items-center justify-center gap-2"
+          class="w-full py-3 bg-[#e27246] hover:bg-[#c25f38] text-white text-sm font-bold rounded-xl transition-all flex items-center justify-center gap-2"
         >
-          <span class="material-symbols-outlined text-sm">add</span>
+          <span class="material-symbols-outlined text-lg">add</span>
           Nuevo Producto
         </button>
       </div>
@@ -456,98 +477,94 @@ function cerrarSesion() {
       <!-- Lista de productos por categoría -->
       <div class="flex-1 overflow-y-auto custom-scrollbar">
         <div v-if="loading" class="flex items-center justify-center py-12">
-          <div class="animate-spin w-8 h-8 border-4 border-[#ff851a] border-t-transparent rounded-full"></div>
+          <div class="animate-spin w-8 h-8 border-4 border-[#e27246] border-t-transparent rounded-full"></div>
         </div>
 
         <template v-else>
-          <div v-for="(prods, categoria) in productosPorCategoria" :key="categoria" class="px-4 py-2">
-            <h3 class="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2 px-2">{{ categoria }}</h3>
-            <div class="space-y-1">
-              <div
+          <div v-for="(prods, categoria) in productosPorCategoria" :key="categoria" class="py-3">
+            <h3 class="px-4 text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-2">{{ categoria }}</h3>
+            <div class="space-y-1 px-2">
+              <button
                 v-for="producto in prods"
                 :key="producto.id"
                 @click="seleccionarProducto(producto)"
                 :class="[
-                  'flex items-center gap-3 p-2 rounded-xl cursor-pointer transition-colors',
+                  'w-full flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all text-left',
                   productoSeleccionado?.id === producto.id
-                    ? 'bg-[#ff851a]/5 border border-[#ff851a]/20'
-                    : 'hover:bg-slate-200 dark:hover:bg-[#272a30]'
+                    ? 'bg-[#e27246]/20 border border-[#e27246]/30'
+                    : 'hover:bg-gray-800/50'
                 ]"
               >
                 <div
-                  class="size-12 rounded-lg bg-cover bg-center shrink-0 bg-slate-200 dark:bg-[#272a30] flex items-center justify-center"
+                  class="w-12 h-12 rounded-lg bg-cover bg-center shrink-0 bg-gray-800 flex items-center justify-center overflow-hidden"
                   :style="producto.imagen_url ? `background-image: url('${producto.imagen_url}')` : ''"
                 >
-                  <span v-if="!producto.imagen_url" class="material-symbols-outlined text-slate-400">restaurant</span>
+                  <span v-if="!producto.imagen_url" class="material-symbols-outlined text-gray-600">restaurant</span>
                 </div>
                 <div class="flex-1 min-w-0">
-                  <p class="text-sm font-medium truncate">{{ producto.nombre }}</p>
-                  <p class="text-xs text-[#ff851a] font-semibold">{{ producto.precio_base?.toFixed(2) }}€</p>
+                  <p class="text-sm font-semibold truncate">{{ producto.nombre }}</p>
+                  <p class="text-xs text-[#e27246] font-bold">{{ producto.precio_base?.toFixed(2) }}€</p>
                 </div>
                 <span
                   v-if="!producto.disponible"
-                  class="text-[10px] bg-red-100 text-red-600 px-2 py-0.5 rounded-full font-medium"
+                  class="text-[9px] bg-red-500/20 text-red-400 px-2 py-1 rounded-full font-bold uppercase"
                 >
                   Agotado
                 </span>
-              </div>
+              </button>
             </div>
           </div>
 
           <div v-if="productos.length === 0" class="text-center py-12">
-            <span class="material-symbols-outlined text-4xl text-slate-300">inventory_2</span>
-            <p class="mt-2 text-slate-500 text-sm">No hay productos</p>
+            <span class="material-symbols-outlined text-5xl text-gray-700">inventory_2</span>
+            <p class="mt-3 text-gray-500 text-sm">No hay productos</p>
           </div>
         </template>
       </div>
     </div>
 
     <!-- Editor Principal -->
-    <main class="flex-1 flex flex-col overflow-y-auto bg-[#fafafa] dark:bg-[#16181d] custom-scrollbar">
+    <main class="flex-1 flex flex-col overflow-hidden bg-[#0a0b0d]">
       <!-- Sin producto seleccionado -->
       <div v-if="!productoSeleccionado" class="flex-1 flex items-center justify-center">
         <div class="text-center">
-          <span class="material-symbols-outlined text-6xl text-slate-300">touch_app</span>
-          <p class="mt-4 text-slate-500">Selecciona un producto para editar</p>
-          <p class="text-sm text-slate-400">o crea uno nuevo</p>
+          <div class="w-24 h-24 rounded-2xl bg-gray-800/50 flex items-center justify-center mx-auto mb-4">
+            <span class="material-symbols-outlined text-5xl text-gray-600">touch_app</span>
+          </div>
+          <p class="text-gray-400 font-medium">Selecciona un producto para editar</p>
+          <p class="text-sm text-gray-600 mt-1">o crea uno nuevo</p>
         </div>
       </div>
 
       <!-- Editor de producto -->
       <template v-else>
         <!-- Header del editor -->
-        <header class="h-16 border-b border-slate-200 dark:border-[#3a3f4a] flex items-center justify-between px-8 bg-[#fafafa]/80 dark:bg-[#16181d]/80 backdrop-blur-md sticky top-0 z-10">
+        <header class="h-16 border-b border-gray-800/50 flex items-center justify-between px-6 bg-[#0f1115] shrink-0">
           <div class="flex items-center gap-4">
             <h2 class="text-lg font-bold">
-              {{ productoSeleccionado.id === 'nuevo' ? 'Nuevo Producto' : `Editar: ${productoSeleccionado.nombre}` }}
+              {{ productoSeleccionado.id === 'nuevo' ? 'Nuevo Producto' : formulario.nombre || 'Sin nombre' }}
             </h2>
             <span
               v-if="productoSeleccionado.id !== 'nuevo'"
-              :class="formulario.disponible ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'"
-              class="px-2 py-1 text-[10px] font-bold rounded uppercase tracking-wider"
+              :class="formulario.disponible ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/20 text-red-400'"
+              class="px-3 py-1 text-[10px] font-bold rounded-full uppercase tracking-wider"
             >
               {{ formulario.disponible ? 'Activo' : 'Inactivo' }}
             </span>
           </div>
           <div class="flex items-center gap-3">
             <button
-              v-if="productoSeleccionado.id !== 'nuevo'"
-              @click="eliminarProducto"
-              class="px-4 py-2 rounded-lg text-sm font-semibold text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
+              @click="descartarCambios"
+              class="px-4 py-2 rounded-lg text-sm font-semibold text-gray-400 hover:bg-gray-800 transition-colors"
             >
-              Eliminar
-            </button>
-            <button
-              @click="productoSeleccionado = null"
-              class="px-4 py-2 rounded-lg text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#272a30] transition-colors"
-            >
-              Cancelar
+              Descartar
             </button>
             <button
               @click="guardarProducto"
               :disabled="saving"
-              class="px-6 py-2 rounded-lg bg-[#ff851a] text-white text-sm font-bold shadow-lg shadow-[#ff851a]/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50"
+              class="px-6 py-2 rounded-lg bg-[#e27246] hover:bg-[#c25f38] text-white text-sm font-bold transition-all disabled:opacity-50 flex items-center gap-2"
             >
+              <span v-if="saving" class="material-symbols-outlined text-lg animate-spin">progress_activity</span>
               {{ saving ? 'Guardando...' : 'Guardar Cambios' }}
             </button>
           </div>
@@ -557,83 +574,128 @@ function cerrarSesion() {
         <div
           v-if="mensaje.texto"
           :class="[
-            'mx-8 mt-4 px-4 py-3 rounded-lg text-sm font-medium',
-            mensaje.tipo === 'exito' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+            'mx-6 mt-4 px-4 py-3 rounded-xl text-sm font-medium flex items-center gap-2',
+            mensaje.tipo === 'exito' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/20 text-red-400'
           ]"
         >
+          <span class="material-symbols-outlined text-lg">{{ mensaje.tipo === 'exito' ? 'check_circle' : 'error' }}</span>
           {{ mensaje.texto }}
         </div>
 
-        <div class="p-8 max-w-4xl mx-auto w-full space-y-8">
-          <!-- Grid del editor -->
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <!-- Columna izquierda: Detalles -->
-            <div class="space-y-6">
-              <!-- Nombre -->
-              <div class="space-y-2">
-                <label class="text-xs font-bold text-slate-400 uppercase tracking-widest">Nombre del Producto</label>
-                <input
-                  v-model="formulario.nombre"
-                  class="w-full px-4 py-3 bg-white dark:bg-[#272a30] border-none rounded-xl focus:ring-2 focus:ring-[#ff851a] dark:text-white font-medium"
-                  type="text"
-                  placeholder="Ej: Pizza Margarita"
-                />
-              </div>
+        <!-- Pestañas -->
+        <div class="px-6 pt-4 border-b border-gray-800/50">
+          <div class="flex gap-1">
+            <button
+              @click="tabActiva = 'basico'"
+              :class="[
+                'px-5 py-3 text-sm font-semibold rounded-t-xl transition-all',
+                tabActiva === 'basico'
+                  ? 'bg-[#1a1d23] text-white border-t border-l border-r border-gray-800/50'
+                  : 'text-gray-500 hover:text-gray-300'
+              ]"
+            >
+              Información Básica
+            </button>
+            <button
+              @click="tabActiva = 'inventario'"
+              :class="[
+                'px-5 py-3 text-sm font-semibold rounded-t-xl transition-all',
+                tabActiva === 'inventario'
+                  ? 'bg-[#1a1d23] text-white border-t border-l border-r border-gray-800/50'
+                  : 'text-gray-500 hover:text-gray-300'
+              ]"
+            >
+              Inventario
+            </button>
+          </div>
+        </div>
 
-              <!-- Descripción -->
-              <div class="space-y-2">
-                <label class="text-xs font-bold text-slate-400 uppercase tracking-widest">Descripción</label>
-                <textarea
-                  v-model="formulario.descripcion"
-                  class="w-full px-4 py-3 bg-white dark:bg-[#272a30] border-none rounded-xl focus:ring-2 focus:ring-[#ff851a] dark:text-white font-medium resize-none"
-                  rows="3"
-                  placeholder="Describe el producto..."
-                ></textarea>
-              </div>
-
-              <!-- Precio y Categoría -->
-              <div class="grid grid-cols-2 gap-4">
+        <!-- Contenido del editor -->
+        <div class="flex-1 overflow-y-auto custom-scrollbar">
+          <div class="p-6">
+            <!-- TAB: Información Básica -->
+            <div v-if="tabActiva === 'basico'" class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <!-- Columna izquierda: Detalles -->
+              <div class="space-y-6">
+                <!-- Nombre -->
                 <div class="space-y-2">
-                  <label class="text-xs font-bold text-slate-400 uppercase tracking-widest">Precio (€)</label>
+                  <label class="text-xs font-bold text-gray-400 uppercase tracking-widest">Nombre del Producto</label>
                   <input
-                    v-model.number="formulario.precio_base"
-                    class="w-full px-4 py-3 bg-white dark:bg-[#272a30] border-none rounded-xl focus:ring-2 focus:ring-[#ff851a] dark:text-white font-medium"
-                    type="number"
-                    step="0.01"
-                    min="0"
+                    v-model="formulario.nombre"
+                    class="w-full px-4 py-3 bg-[#1a1d23] border border-gray-800 rounded-xl focus:ring-2 focus:ring-[#e27246] focus:border-transparent text-white font-medium"
+                    type="text"
+                    placeholder="Ej: Pizza Margarita"
                   />
                 </div>
+
+                <!-- Descripción -->
                 <div class="space-y-2">
-                  <label class="text-xs font-bold text-slate-400 uppercase tracking-widest">Categoría</label>
-                  <select
-                    v-model="formulario.categoria_id"
-                    class="w-full px-4 py-3 bg-white dark:bg-[#272a30] border-none rounded-xl focus:ring-2 focus:ring-[#ff851a] dark:text-white font-medium"
+                  <label class="text-xs font-bold text-gray-400 uppercase tracking-widest">Descripción</label>
+                  <textarea
+                    v-model="formulario.descripcion"
+                    class="w-full px-4 py-3 bg-[#1a1d23] border border-gray-800 rounded-xl focus:ring-2 focus:ring-[#e27246] focus:border-transparent text-white font-medium resize-none"
+                    rows="3"
+                    placeholder="Describe el producto..."
+                  ></textarea>
+                </div>
+
+                <!-- Precio y Categoría -->
+                <div class="grid grid-cols-2 gap-4">
+                  <div class="space-y-2">
+                    <label class="text-xs font-bold text-gray-400 uppercase tracking-widest">Precio (€)</label>
+                    <div class="relative">
+                      <input
+                        v-model.number="formulario.precio_base"
+                        class="w-full px-4 py-3 bg-[#1a1d23] border border-gray-800 rounded-xl focus:ring-2 focus:ring-[#e27246] focus:border-transparent text-white font-bold text-lg"
+                        type="number"
+                        step="0.01"
+                        min="0"
+                      />
+                      <span class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold">€</span>
+                    </div>
+                  </div>
+                  <div class="space-y-2">
+                    <label class="text-xs font-bold text-gray-400 uppercase tracking-widest">Categoría</label>
+                    <select
+                      v-model="formulario.categoria_id"
+                      class="w-full px-4 py-3 bg-[#1a1d23] border border-gray-800 rounded-xl focus:ring-2 focus:ring-[#e27246] focus:border-transparent text-white font-medium"
+                    >
+                      <option v-for="cat in categorias" :key="cat.id" :value="cat.id">
+                        {{ cat.nombre }}
+                      </option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- Toggle Disponible -->
+                <div class="p-4 bg-[#1a1d23] rounded-xl border border-gray-800 flex items-center justify-between">
+                  <div>
+                    <p class="text-sm font-bold">Disponible para pedidos</p>
+                    <p class="text-xs text-gray-500 mt-1">Activa o desactiva este producto del menú</p>
+                  </div>
+                  <button
+                    @click="formulario.disponible = !formulario.disponible"
+                    :class="[
+                      'w-14 h-8 rounded-full transition-all relative',
+                      formulario.disponible ? 'bg-[#e27246]' : 'bg-gray-700'
+                    ]"
                   >
-                    <option v-for="cat in categorias" :key="cat.id" :value="cat.id">
-                      {{ cat.nombre }}
-                    </option>
-                  </select>
+                    <span
+                      :class="[
+                        'absolute top-1 w-6 h-6 bg-white rounded-full transition-all shadow-md',
+                        formulario.disponible ? 'right-1' : 'left-1'
+                      ]"
+                    ></span>
+                  </button>
                 </div>
               </div>
 
-              <!-- Toggle Disponible -->
-              <div class="p-4 bg-white dark:bg-[#272a30] rounded-xl flex items-center justify-between">
-                <div>
-                  <p class="text-sm font-bold">Disponible para pedidos</p>
-                  <p class="text-xs text-slate-500">Activa o desactiva este producto del menú</p>
-                </div>
-                <label class="relative inline-flex items-center cursor-pointer">
-                  <input v-model="formulario.disponible" type="checkbox" class="sr-only peer" />
-                  <div class="w-11 h-6 bg-slate-200 dark:bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#ff851a]"></div>
-                </label>
-              </div>
-            </div>
+              <!-- Columna derecha: Imagen -->
+              <div class="space-y-4">
+                <label class="text-xs font-bold text-gray-400 uppercase tracking-widest">Imagen del Producto</label>
 
-            <!-- Columna derecha: Imagen -->
-            <div class="space-y-6">
-              <label class="text-xs font-bold text-slate-400 uppercase tracking-widest">Imagen del Producto</label>
-              <div class="relative group">
-                <label class="block aspect-square w-full bg-slate-100 dark:bg-[#272a30] rounded-2xl border-2 border-dashed border-slate-300 dark:border-slate-700 overflow-hidden cursor-pointer transition-all hover:border-[#ff851a]/50 hover:bg-[#ff851a]/5">
+                <!-- Imagen principal -->
+                <label class="block aspect-square w-full max-w-sm bg-[#1a1d23] rounded-2xl border-2 border-dashed border-gray-700 overflow-hidden cursor-pointer transition-all hover:border-[#e27246]/50 hover:bg-[#e27246]/5 relative group">
                   <input
                     type="file"
                     accept="image/*"
@@ -645,126 +707,213 @@ function cerrarSesion() {
                     class="absolute inset-0 bg-cover bg-center"
                     :style="`background-image: url('${imagenPreview}')`"
                   ></div>
-                  <div class="absolute inset-0 flex flex-col items-center justify-center bg-black/40 opacity-0 hover:opacity-100 transition-opacity">
+                  <div class="absolute inset-0 flex flex-col items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity">
                     <span class="material-symbols-outlined text-4xl text-white mb-2">cloud_upload</span>
                     <p class="text-sm font-bold text-white">{{ imagenPreview ? 'Cambiar Imagen' : 'Subir Imagen' }}</p>
                     <p class="text-[11px] text-white/70 mt-1">Recomendado: 800x800px</p>
                   </div>
                   <div v-if="!imagenPreview" class="absolute inset-0 flex flex-col items-center justify-center">
-                    <span class="material-symbols-outlined text-4xl text-slate-400 mb-2">add_photo_alternate</span>
-                    <p class="text-sm font-medium text-slate-500">Haz clic para subir</p>
+                    <span class="material-symbols-outlined text-5xl text-gray-600 mb-3">add_photo_alternate</span>
+                    <p class="text-sm font-medium text-gray-500">Haz clic para subir</p>
+                    <p class="text-xs text-gray-600 mt-1">PNG, JPG hasta 5MB</p>
                   </div>
                 </label>
-              </div>
-              <p v-if="subiendoImagen" class="text-sm text-[#ff851a] flex items-center gap-2">
-                <span class="animate-spin material-symbols-outlined text-sm">progress_activity</span>
-                Subiendo imagen...
-              </p>
-            </div>
-          </div>
 
-          <!-- Sección de Extras/Opciones -->
-          <div v-if="productoSeleccionado.id !== 'nuevo'" class="space-y-4 pt-6 border-t border-slate-200 dark:border-[#3a3f4a]">
-            <div class="flex items-center justify-between">
-              <div>
-                <h3 class="text-lg font-bold">Gestionar Opciones</h3>
-                <p class="text-sm text-slate-500">Añade grupos de opciones (tamaño, base, extras...)</p>
-              </div>
-            </div>
-
-            <!-- Formulario para nuevo grupo -->
-            <div class="flex gap-3 items-end bg-white dark:bg-[#272a30] p-4 rounded-xl">
-              <div class="flex-1">
-                <label class="text-xs font-bold text-slate-400 uppercase tracking-widest">Nuevo Grupo</label>
-                <input
-                  v-model="nuevoGrupo.nombre"
-                  class="w-full mt-1 px-3 py-2 bg-slate-50 dark:bg-[#1c1f26] border-none rounded-lg text-sm focus:ring-2 focus:ring-[#ff851a]"
-                  placeholder="Ej: Tamaño, Base, Extras..."
-                  @keyup.enter="agregarGrupo"
-                />
-              </div>
-              <label class="flex items-center gap-2 px-3 py-2">
-                <input v-model="nuevoGrupo.es_obligatorio" type="checkbox" class="rounded text-[#ff851a] focus:ring-[#ff851a]" />
-                <span class="text-sm">Obligatorio</span>
-              </label>
-              <button
-                @click="agregarGrupo"
-                class="px-4 py-2 bg-[#ff851a]/20 text-[#ff851a] text-sm font-bold rounded-lg hover:bg-[#ff851a]/30 transition-colors"
-              >
-                Añadir
-              </button>
-            </div>
-
-            <!-- Lista de grupos existentes -->
-            <div v-for="grupo in gruposOpciones" :key="grupo.id" class="bg-white dark:bg-[#272a30] rounded-xl overflow-hidden">
-              <div class="px-4 py-3 bg-slate-50 dark:bg-[#1c1f26] flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                  <span class="font-bold">{{ grupo.nombre }}</span>
-                  <span
-                    :class="grupo.es_obligatorio ? 'bg-[#ff851a]/10 text-[#ff851a]' : 'bg-slate-200 dark:bg-slate-700 text-slate-500'"
-                    class="text-[10px] font-bold px-2 py-0.5 rounded uppercase"
-                  >
-                    {{ grupo.es_obligatorio ? 'Obligatorio' : 'Opcional' }}
-                  </span>
-                </div>
-                <div class="flex items-center gap-2">
-                  <button
-                    @click="agregarOpcion(grupo.id)"
-                    class="text-[#ff851a] hover:bg-[#ff851a]/10 p-1 rounded transition-colors"
-                    title="Añadir opción"
-                  >
-                    <span class="material-symbols-outlined text-sm">add</span>
-                  </button>
-                  <button
-                    @click="eliminarGrupo(grupo.id)"
-                    class="text-slate-400 hover:text-red-500 p-1 rounded transition-colors"
-                    title="Eliminar grupo"
-                  >
-                    <span class="material-symbols-outlined text-sm">delete</span>
-                  </button>
-                </div>
-              </div>
-
-              <!-- Opciones del grupo -->
-              <div v-if="grupo.opciones?.length" class="divide-y divide-slate-100 dark:divide-[#3a3f4a]">
-                <div
-                  v-for="opcion in grupo.opciones"
-                  :key="opcion.id"
-                  class="px-4 py-3 flex items-center gap-4"
-                >
-                  <input
-                    v-model="opcion.nombre"
-                    @blur="actualizarOpcion(opcion)"
-                    class="flex-1 bg-transparent border-none focus:ring-0 text-sm font-medium p-0"
-                  />
-                  <div class="flex items-center gap-1">
-                    <span class="text-sm text-slate-400">+</span>
-                    <input
-                      v-model.number="opcion.precio_adicional"
-                      @blur="actualizarOpcion(opcion)"
-                      class="w-16 bg-transparent border-none focus:ring-0 text-sm font-medium text-[#ff851a] p-0 text-right"
-                      type="number"
-                      step="0.01"
-                    />
-                    <span class="text-sm text-[#ff851a]">€</span>
+                <!-- Galería de miniaturas (preview) -->
+                <div v-if="imagenPreview" class="flex gap-2">
+                  <div class="w-16 h-16 rounded-lg overflow-hidden border-2 border-[#e27246]">
+                    <img :src="imagenPreview" class="w-full h-full object-cover" />
                   </div>
-                  <button
-                    @click="eliminarOpcion(grupo.id, opcion.id)"
-                    class="text-slate-400 hover:text-red-500 transition-colors"
-                  >
-                    <span class="material-symbols-outlined text-sm">close</span>
+                  <button class="w-16 h-16 rounded-lg border-2 border-dashed border-gray-700 flex items-center justify-center hover:border-gray-600 transition-colors">
+                    <span class="material-symbols-outlined text-gray-600">add</span>
                   </button>
                 </div>
-              </div>
-              <div v-else class="px-4 py-6 text-center text-slate-400 text-sm">
-                Sin opciones. Haz clic en + para añadir.
+
+                <p v-if="subiendoImagen" class="text-sm text-[#e27246] flex items-center gap-2">
+                  <span class="animate-spin material-symbols-outlined text-sm">progress_activity</span>
+                  Subiendo imagen...
+                </p>
               </div>
             </div>
 
-            <div v-if="gruposOpciones.length === 0" class="text-center py-8 text-slate-400">
-              <span class="material-symbols-outlined text-3xl">tune</span>
-              <p class="mt-2 text-sm">No hay grupos de opciones</p>
-              <p class="text-xs">Crea un grupo arriba para añadir opciones</p>
+            <!-- TAB: Inventario -->
+            <div v-if="tabActiva === 'inventario'" class="max-w-2xl space-y-6">
+              <div class="grid grid-cols-2 gap-6">
+                <div class="space-y-2">
+                  <label class="text-xs font-bold text-gray-400 uppercase tracking-widest">Stock Disponible</label>
+                  <input
+                    v-model.number="formulario.stock"
+                    class="w-full px-4 py-3 bg-[#1a1d23] border border-gray-800 rounded-xl focus:ring-2 focus:ring-[#e27246] focus:border-transparent text-white font-medium"
+                    type="number"
+                    min="0"
+                  />
+                  <p class="text-xs text-gray-500">Usa 999 para ilimitado</p>
+                </div>
+                <div class="space-y-2">
+                  <label class="text-xs font-bold text-gray-400 uppercase tracking-widest">Alérgenos</label>
+                  <input
+                    v-model="formulario.alergenos"
+                    class="w-full px-4 py-3 bg-[#1a1d23] border border-gray-800 rounded-xl focus:ring-2 focus:ring-[#e27246] focus:border-transparent text-white font-medium"
+                    type="text"
+                    placeholder="Ej: Gluten, Lácteos..."
+                  />
+                </div>
+              </div>
+
+              <!-- Info card -->
+              <div class="p-4 bg-blue-500/10 border border-blue-500/30 rounded-xl">
+                <div class="flex items-start gap-3">
+                  <span class="material-symbols-outlined text-blue-400">info</span>
+                  <div>
+                    <p class="text-blue-400 font-medium text-sm">Gestión de Stock</p>
+                    <p class="text-gray-400 text-xs mt-1">
+                      El stock se reduce automáticamente con cada pedido. Cuando llegue a 0, el producto se marcará como agotado.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Sección de Extras/Opciones (visible siempre si no es nuevo) -->
+            <div v-if="productoSeleccionado.id !== 'nuevo'" class="mt-8 pt-8 border-t border-gray-800/50">
+              <div class="flex items-center justify-between mb-6">
+                <div>
+                  <h3 class="text-lg font-bold flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[#e27246]">tune</span>
+                    Gestionar Extras
+                  </h3>
+                  <p class="text-sm text-gray-500 mt-1">Añade opciones personalizables al producto</p>
+                </div>
+              </div>
+
+              <!-- Tabla de Extras -->
+              <div class="bg-[#1a1d23] rounded-xl border border-gray-800 overflow-hidden">
+                <!-- Header de la tabla -->
+                <div class="grid grid-cols-12 gap-4 px-4 py-3 bg-gray-800/50 text-xs font-bold text-gray-400 uppercase tracking-widest">
+                  <div class="col-span-4">Grupo</div>
+                  <div class="col-span-3">Opción</div>
+                  <div class="col-span-2">Precio +</div>
+                  <div class="col-span-2">Tipo</div>
+                  <div class="col-span-1"></div>
+                </div>
+
+                <!-- Filas de opciones -->
+                <div v-for="grupo in gruposOpciones" :key="grupo.id">
+                  <!-- Fila del grupo -->
+                  <div class="grid grid-cols-12 gap-4 px-4 py-3 border-t border-gray-800/50 items-center bg-gray-800/20">
+                    <div class="col-span-4 font-bold text-white flex items-center gap-2">
+                      <span class="material-symbols-outlined text-[#e27246] text-lg">folder</span>
+                      {{ grupo.nombre }}
+                    </div>
+                    <div class="col-span-3 text-gray-500 text-sm">{{ grupo.opciones?.length || 0 }} opciones</div>
+                    <div class="col-span-2"></div>
+                    <div class="col-span-2">
+                      <span
+                        :class="grupo.es_obligatorio ? 'bg-[#e27246]/20 text-[#e27246]' : 'bg-gray-700 text-gray-400'"
+                        class="text-[10px] font-bold px-2 py-1 rounded-full uppercase"
+                      >
+                        {{ grupo.es_obligatorio ? 'Obligatorio' : 'Opcional' }}
+                      </span>
+                    </div>
+                    <div class="col-span-1 flex justify-end gap-1">
+                      <button
+                        @click="agregarOpcion(grupo.id)"
+                        class="p-1.5 hover:bg-[#e27246]/20 rounded-lg transition-colors"
+                        title="Añadir opción"
+                      >
+                        <span class="material-symbols-outlined text-[#e27246] text-lg">add</span>
+                      </button>
+                      <button
+                        @click="eliminarGrupo(grupo.id)"
+                        class="p-1.5 hover:bg-red-500/20 rounded-lg transition-colors"
+                        title="Eliminar grupo"
+                      >
+                        <span class="material-symbols-outlined text-gray-500 hover:text-red-400 text-lg">delete</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Opciones del grupo -->
+                  <div
+                    v-for="opcion in grupo.opciones"
+                    :key="opcion.id"
+                    class="grid grid-cols-12 gap-4 px-4 py-3 border-t border-gray-800/30 items-center hover:bg-gray-800/30 transition-colors"
+                  >
+                    <div class="col-span-4 pl-8 text-gray-500">└</div>
+                    <div class="col-span-3">
+                      <input
+                        v-model="opcion.nombre"
+                        @blur="actualizarOpcion(opcion)"
+                        class="bg-transparent border-none focus:ring-0 text-sm font-medium p-0 w-full text-white"
+                      />
+                    </div>
+                    <div class="col-span-2 flex items-center gap-1">
+                      <span class="text-gray-500">+</span>
+                      <input
+                        v-model.number="opcion.precio_adicional"
+                        @blur="actualizarOpcion(opcion)"
+                        class="w-16 bg-transparent border-none focus:ring-0 text-sm font-bold text-[#e27246] p-0"
+                        type="number"
+                        step="0.01"
+                      />
+                      <span class="text-[#e27246]">€</span>
+                    </div>
+                    <div class="col-span-2"></div>
+                    <div class="col-span-1 flex justify-end">
+                      <button
+                        @click="eliminarOpcion(grupo.id, opcion.id)"
+                        class="p-1.5 hover:bg-red-500/20 rounded-lg transition-colors opacity-0 hover:opacity-100"
+                      >
+                        <span class="material-symbols-outlined text-gray-500 hover:text-red-400 text-sm">close</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Sin opciones -->
+                  <div v-if="!grupo.opciones?.length" class="px-4 py-4 pl-12 text-gray-500 text-sm border-t border-gray-800/30">
+                    Sin opciones. Haz clic en + para añadir.
+                  </div>
+                </div>
+
+                <!-- Sin grupos -->
+                <div v-if="gruposOpciones.length === 0" class="px-4 py-8 text-center">
+                  <span class="material-symbols-outlined text-3xl text-gray-600">playlist_add</span>
+                  <p class="mt-2 text-gray-500 text-sm">No hay grupos de opciones</p>
+                </div>
+
+                <!-- Añadir nuevo grupo -->
+                <div class="border-t border-gray-800/50 p-4 bg-gray-800/20">
+                  <div class="flex gap-3 items-center">
+                    <input
+                      v-model="nuevoGrupo.nombre"
+                      class="flex-1 px-4 py-2.5 bg-[#0a0b0d] border border-gray-700 rounded-lg text-sm focus:ring-2 focus:ring-[#e27246] focus:border-transparent text-white"
+                      placeholder="Nombre del nuevo grupo (ej: Tamaño, Extras...)"
+                      @keyup.enter="agregarGrupo"
+                    />
+                    <label class="flex items-center gap-2 px-3 py-2 cursor-pointer">
+                      <input v-model="nuevoGrupo.es_obligatorio" type="checkbox" class="rounded bg-gray-800 border-gray-600 text-[#e27246] focus:ring-[#e27246]" />
+                      <span class="text-sm text-gray-400">Obligatorio</span>
+                    </label>
+                    <button
+                      @click="agregarGrupo"
+                      class="px-5 py-2.5 bg-[#e27246] hover:bg-[#c25f38] text-white text-sm font-bold rounded-lg transition-all"
+                    >
+                      Añadir Grupo
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Botón eliminar producto -->
+              <div v-if="productoSeleccionado.id !== 'nuevo'" class="mt-8 pt-6 border-t border-gray-800/50">
+                <button
+                  @click="eliminarProducto"
+                  class="px-6 py-3 rounded-xl text-sm font-semibold text-red-400 border border-red-500/30 hover:bg-red-500/10 transition-colors flex items-center gap-2"
+                >
+                  <span class="material-symbols-outlined text-lg">delete_forever</span>
+                  Eliminar Producto
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -783,5 +932,8 @@ function cerrarSesion() {
 .custom-scrollbar::-webkit-scrollbar-thumb {
   background: #3a3f4a;
   border-radius: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #4a4f5a;
 }
 </style>

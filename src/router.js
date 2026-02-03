@@ -10,6 +10,8 @@ import TableEntryView from './views/TableEntryView.vue'
 import CamareroView from './views/CamareroView.vue'
 import MenuNinosView from './views/MenuNinosView.vue'
 import MenuChefView from './views/MenuChefView.vue'
+import PaymentView from './views/PaymentView.vue'
+import GestionView from './views/GestionView.vue'
 const routes = [
   {
     path: '/:restaurantSlug/table/:tableNumber',
@@ -43,7 +45,7 @@ const routes = [
   },
   {
     path: '/admin',
-    redirect: '/admin/productos'
+    redirect: '/camarero'
   },
   {
     path: '/admin/dashboard',
@@ -71,6 +73,18 @@ const routes = [
     path: '/camarero',
     name: 'Camarero',
     component: CamareroView,
+    meta: { requiresAdmin: true }
+  },
+  {
+    path: '/pago/:mesaId',
+    name: 'Payment',
+    component: PaymentView,
+    meta: { requiresAdmin: true }
+  },
+  {
+    path: '/gestion',
+    name: 'Gestion',
+    component: GestionView,
     meta: { requiresAdmin: true }
   },
   // Redireccion por defecto - ir a la entrada de mesa para demo

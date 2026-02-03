@@ -139,7 +139,8 @@ watch(pin, async (newPin) => {
           restaurante_id: null
         })
         sessionStorage.setItem('adminAuth', 'true')
-        router.push('/admin')
+        // Admin/Gerente va primero al SALÓN (mesas)
+        router.push('/camarero')
         return
       }
 
@@ -172,7 +173,8 @@ watch(pin, async (newPin) => {
         } else if (data.rol === 'camarero') {
           router.push('/comandas')
         } else {
-          router.push('/admin')
+          // Admin/Gerente va primero al SALÓN (mesas)
+          router.push('/camarero')
         }
       }
     } catch (e) {
@@ -187,7 +189,8 @@ watch(pin, async (newPin) => {
           restaurante_id: null
         })
         sessionStorage.setItem('adminAuth', 'true')
-        router.push('/admin')
+        // Admin/Gerente va primero al SALÓN (mesas)
+        router.push('/camarero')
         return
       }
       error.value = 'Error de conexion'
