@@ -89,51 +89,63 @@
 
       <main class="p-6 flex-1 overflow-auto">
       <!-- Tabs de estado -->
-      <div class="flex gap-4 mb-6">
+      <div class="border-b border-gray-800/30 bg-gradient-to-r from-[#0f1115] to-[#0a0b0d] px-6 flex items-center shrink-0 h-14 gap-2 mb-6 -mx-6 -mt-6 mb-6">
         <button
           @click="tabActiva = 'pendiente'"
           :class="[
-            'flex items-center gap-2 px-5 py-3 rounded-xl font-bold transition-all',
+            'group relative px-6 py-2.5 font-bold text-sm transition-all duration-300 flex items-center gap-2 rounded-lg',
             tabActiva === 'pendiente'
-              ? 'bg-yellow-500 text-black'
-              : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+              ? 'bg-[#e27246]/15 text-[#e27246] shadow-lg shadow-[#e27246]/20'
+              : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800/30'
           ]"
         >
           <span class="material-symbols-outlined">schedule</span>
-          Nuevos
-          <span v-if="pedidosPendientes.length > 0" class="bg-black/20 px-2 py-0.5 rounded-full text-sm">
+          <span>Nuevos</span>
+          <span v-if="pedidosPendientes.length > 0" class="bg-[#e27246]/30 px-2 py-0.5 rounded-full text-xs font-bold">
             {{ pedidosPendientes.length }}
           </span>
+          <span
+            v-if="tabActiva === 'pendiente'"
+            class="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[#e27246] via-[#e27246] to-transparent rounded-full"
+          ></span>
         </button>
         <button
           @click="tabActiva = 'preparando'"
           :class="[
-            'flex items-center gap-2 px-5 py-3 rounded-xl font-bold transition-all',
+            'group relative px-6 py-2.5 font-bold text-sm transition-all duration-300 flex items-center gap-2 rounded-lg',
             tabActiva === 'preparando'
-              ? 'bg-orange-500 text-white'
-              : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+              ? 'bg-[#e27246]/15 text-[#e27246] shadow-lg shadow-[#e27246]/20'
+              : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800/30'
           ]"
         >
           <span class="material-symbols-outlined">local_fire_department</span>
-          Preparando
-          <span v-if="pedidosPreparando.length > 0" class="bg-black/20 px-2 py-0.5 rounded-full text-sm">
+          <span>Preparando</span>
+          <span v-if="pedidosPreparando.length > 0" class="bg-[#e27246]/30 px-2 py-0.5 rounded-full text-xs font-bold">
             {{ pedidosPreparando.length }}
           </span>
+          <span
+            v-if="tabActiva === 'preparando'"
+            class="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[#e27246] via-[#e27246] to-transparent rounded-full"
+          ></span>
         </button>
         <button
           @click="tabActiva = 'listo'"
           :class="[
-            'flex items-center gap-2 px-5 py-3 rounded-xl font-bold transition-all',
+            'group relative px-6 py-2.5 font-bold text-sm transition-all duration-300 flex items-center gap-2 rounded-lg',
             tabActiva === 'listo'
-              ? 'bg-green-500 text-white'
-              : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+              ? 'bg-[#e27246]/15 text-[#e27246] shadow-lg shadow-[#e27246]/20'
+              : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800/30'
           ]"
         >
           <span class="material-symbols-outlined">check_circle</span>
-          Listos
-          <span v-if="pedidosListos.length > 0" class="bg-black/20 px-2 py-0.5 rounded-full text-sm">
+          <span>Listos</span>
+          <span v-if="pedidosListos.length > 0" class="bg-[#e27246]/30 px-2 py-0.5 rounded-full text-xs font-bold">
             {{ pedidosListos.length }}
           </span>
+          <span
+            v-if="tabActiva === 'listo'"
+            class="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[#e27246] via-[#e27246] to-transparent rounded-full"
+          ></span>
         </button>
       </div>
 

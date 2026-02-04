@@ -583,31 +583,39 @@ function cerrarSesion() {
         </div>
 
         <!-- Pestañas -->
-        <div class="px-6 pt-4 border-b border-gray-800/50">
-          <div class="flex gap-1">
-            <button
-              @click="tabActiva = 'basico'"
-              :class="[
-                'px-5 py-3 text-sm font-semibold rounded-t-xl transition-all',
-                tabActiva === 'basico'
-                  ? 'bg-[#1a1d23] text-white border-t border-l border-r border-gray-800/50'
-                  : 'text-gray-500 hover:text-gray-300'
-              ]"
-            >
-              Información Básica
-            </button>
-            <button
-              @click="tabActiva = 'inventario'"
-              :class="[
-                'px-5 py-3 text-sm font-semibold rounded-t-xl transition-all',
-                tabActiva === 'inventario'
-                  ? 'bg-[#1a1d23] text-white border-t border-l border-r border-gray-800/50'
-                  : 'text-gray-500 hover:text-gray-300'
-              ]"
-            >
-              Inventario
-            </button>
-          </div>
+        <div class="border-b border-gray-800/30 bg-gradient-to-r from-[#0f1115] to-[#0a0b0d] px-6 flex items-center shrink-0 h-14 gap-2">
+          <button
+            @click="tabActiva = 'basico'"
+            :class="[
+              'group relative px-6 py-2.5 text-sm font-semibold rounded-lg transition-all duration-300 flex items-center gap-2',
+              tabActiva === 'basico'
+                ? 'bg-[#e27246]/15 text-[#e27246] shadow-lg shadow-[#e27246]/20'
+                : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800/30'
+            ]"
+          >
+            <span class="material-symbols-outlined text-lg">info</span>
+            <span>Información Básica</span>
+            <span
+              v-if="tabActiva === 'basico'"
+              class="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[#e27246] via-[#e27246] to-transparent rounded-full"
+            ></span>
+          </button>
+          <button
+            @click="tabActiva = 'inventario'"
+            :class="[
+              'group relative px-6 py-2.5 text-sm font-semibold rounded-lg transition-all duration-300 flex items-center gap-2',
+              tabActiva === 'inventario'
+                ? 'bg-[#e27246]/15 text-[#e27246] shadow-lg shadow-[#e27246]/20'
+                : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800/30'
+            ]"
+          >
+            <span class="material-symbols-outlined text-lg">inventory_2</span>
+            <span>Inventario</span>
+            <span
+              v-if="tabActiva === 'inventario'"
+              class="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[#e27246] via-[#e27246] to-transparent rounded-full"
+            ></span>
+          </button>
         </div>
 
         <!-- Contenido del editor -->

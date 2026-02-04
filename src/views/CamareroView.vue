@@ -522,30 +522,38 @@ const etiquetaEstado = { libre: 'Libre', ocupada: 'Ocupada', cuenta: 'Por cobrar
             </button>
           </div>
           <!-- Pestañas -->
-          <div class="flex px-4 gap-2">
+          <div class="flex px-4 gap-2 border-b border-gray-800/30 bg-gradient-to-r from-[#0f1115] to-[#0a0b0d] h-14 items-center">
             <button
               @click="tabActiva = 'pagar'"
               :class="[
-                'flex-1 py-3 rounded-t-xl font-bold text-sm transition-all flex items-center justify-center gap-2',
+                'group relative px-6 py-2.5 font-bold text-sm transition-all duration-300 flex items-center gap-2 rounded-lg',
                 tabActiva === 'pagar'
-                  ? 'bg-[#e27246] text-white'
-                  : 'bg-gray-800/50 text-gray-400 hover:text-white'
+                  ? 'bg-[#e27246]/15 text-[#e27246] shadow-lg shadow-[#e27246]/20'
+                  : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800/30'
               ]"
             >
               <span class="material-symbols-outlined text-lg">point_of_sale</span>
-              Cobrar
+              <span>Cobrar</span>
+              <span
+                v-if="tabActiva === 'pagar'"
+                class="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[#e27246] via-[#e27246] to-transparent rounded-full"
+              ></span>
             </button>
             <button
               @click="tabActiva = 'carta'"
               :class="[
-                'flex-1 py-3 rounded-t-xl font-bold text-sm transition-all flex items-center justify-center gap-2',
+                'group relative px-6 py-2.5 font-bold text-sm transition-all duration-300 flex items-center gap-2 rounded-lg',
                 tabActiva === 'carta'
-                  ? 'bg-[#e27246] text-white'
-                  : 'bg-gray-800/50 text-gray-400 hover:text-white'
+                  ? 'bg-[#e27246]/15 text-[#e27246] shadow-lg shadow-[#e27246]/20'
+                  : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800/30'
               ]"
             >
               <span class="material-symbols-outlined text-lg">restaurant_menu</span>
-              Carta
+              <span>Carta</span>
+              <span
+                v-if="tabActiva === 'carta'"
+                class="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[#e27246] via-[#e27246] to-transparent rounded-full"
+              ></span>
             </button>
           </div>
         </div>
