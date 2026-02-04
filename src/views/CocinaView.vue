@@ -1,7 +1,7 @@
 <template>
   <div class="bg-[#0f1115] font-display text-white min-h-screen flex">
     <!-- Sidebar de Navegación -->
-    <aside class="w-64 border-r border-gray-800/50 bg-[#0a0b0d] flex flex-col shrink-0">
+    <aside v-if="userRole !== 'cocina'" class="w-64 border-r border-gray-800/50 bg-[#0a0b0d] flex flex-col shrink-0">
       <!-- Logo -->
       <div class="p-5 border-b border-gray-800/50">
         <div class="flex items-center gap-3">
@@ -84,6 +84,11 @@
             <span class="text-gray-400">En vivo</span>
           </div>
           <div class="text-2xl font-bold tabular-nums text-white">{{ horaActual }}</div>
+
+          <!-- Logout button for cocina -->
+          <button v-if="userRole === 'cocina'" @click="cerrarSesion" class="p-3 bg-gray-800 hover:bg-gray-700 rounded-xl transition-colors ml-4" title="Cerrar Sesión">
+            <span class="material-symbols-outlined text-gray-400">logout</span>
+          </button>
         </div>
       </header>
 
@@ -464,8 +469,23 @@ function tiempoDesde(fecha) {
 function cerrarSesion() {
   sessionStorage.removeItem('userRole')
   sessionStorage.removeItem('adminAuth')
-  router.push('/la-toscana/table/1')
+  sessionStorage.removeItem('adminUser')
+  router.push('/')
 }
+
+// Obtener rol del usuario actual
+const userRole = computed(() => {
+  try {
+    const userData = sessionStorage.getItem('adminUser')
+    if (userData) {
+      const user = JSON.parse(userData)
+      return user.rol
+    }
+  } catch (e) {
+    console.error('Error parsing user role:', e)
+  }
+  return null
+})
 </script>
 
 <style scoped>
