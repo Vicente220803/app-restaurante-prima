@@ -137,21 +137,7 @@ watch(pin, async (newPin) => {
         'admin': '/admin/productos'
       }
 
-      // PIN de desarrollo: 1234 siempre funciona como admin
-      if (newPin === '1234') {
-        adminStore.login({
-          id: 1,
-          user_id: null,
-          nombre: 'Admin',
-          rol: 'admin',
-          restaurante_id: null
-        })
-        sessionStorage.setItem('adminAuth', 'true')
-        router.push(roleRoutes['admin'])
-        return
-      }
-
-      // Intentar buscar en Supabase si no es el PIN de desarrollo
+      // Buscar PIN en Supabase
       const { data, error: dbError } = await supabase
         .from('roles_usuario')
         .select('*')
@@ -173,6 +159,11 @@ watch(pin, async (newPin) => {
           restaurante_id: data.restaurante_id
         })
         sessionStorage.setItem('adminAuth', 'true')
+        sessionStorage.setItem('adminUser', JSON.stringify({
+          id: data.id,
+          nombre: data.nombre,
+          rol: data.rol
+        }))
 
         // Redirigir según el rol
         const route = roleRoutes[data.rol] || '/admin/login'
@@ -180,20 +171,7 @@ watch(pin, async (newPin) => {
       }
     } catch (e) {
       console.error('Error verificando PIN:', e)
-      // Si hay error de conexión pero es PIN 1234, permitir acceso
-      if (newPin === '1234') {
-        adminStore.login({
-          id: 1,
-          user_id: null,
-          nombre: 'Admin',
-          rol: 'admin',
-          restaurante_id: null
-        })
-        sessionStorage.setItem('adminAuth', 'true')
-        router.push('/admin/productos')
-        return
-      }
-      error.value = 'Error de conexion'
+      error.value = 'Error de conexión'
       setTimeout(() => {
         pin.value = ''
       }, 500)
