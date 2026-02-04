@@ -3,7 +3,6 @@ import MenuView from './views/MenuView.vue'
 import CartView from './views/CartView.vue'
 import AdminView from './views/AdminView.vue'
 import AdminProductosView from './views/AdminProductosView.vue'
-import AdminLoginView from './views/AdminLoginView.vue'
 import CocinaView from './views/CocinaView.vue'
 import ComandasView from './views/ComandasView.vue'
 import TableEntryView from './views/TableEntryView.vue'
@@ -40,12 +39,11 @@ const routes = [
   },
   {
     path: '/admin/login',
-    name: 'AdminLogin',
-    component: AdminLoginView
+    redirect: '/la-toscana/table/1'
   },
   {
     path: '/admin',
-    redirect: '/camarero'
+    redirect: '/la-toscana/table/1'
   },
   {
     path: '/admin/dashboard',
