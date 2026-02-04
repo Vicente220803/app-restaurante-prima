@@ -523,28 +523,39 @@ onMounted(async () => {
     <!-- Contenido Principal -->
     <main class="flex-1 flex flex-col overflow-hidden bg-[#0a0b0d]">
       <!-- Pestañas de navegación -->
-      <div class="border-b border-gray-800/50 bg-[#0f1115] px-8 flex items-center shrink-0">
+      <div class="border-b border-gray-800/30 bg-gradient-to-r from-[#0f1115] to-[#0a0b0d] px-8 flex items-center shrink-0 h-16 gap-2">
         <button
           @click="tabActiva = 'seguridad'"
           :class="[
-            'px-6 py-4 text-sm font-semibold border-b-2 transition-all',
+            'group relative px-6 py-2.5 text-sm font-semibold rounded-lg transition-all duration-300 flex items-center gap-2',
             tabActiva === 'seguridad'
-              ? 'border-[#e27246] text-[#e27246]'
-              : 'border-transparent text-gray-500 hover:text-gray-300'
+              ? 'bg-[#e27246]/15 text-[#e27246] shadow-lg shadow-[#e27246]/20'
+              : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800/30'
           ]"
         >
-          Seguridad
+          <span class="material-symbols-outlined text-lg">shield</span>
+          <span>Seguridad</span>
+          <span
+            v-if="tabActiva === 'seguridad'"
+            class="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[#e27246] via-[#e27246] to-transparent rounded-full"
+          ></span>
         </button>
+
         <button
           @click="tabActiva = 'productos'"
           :class="[
-            'px-6 py-4 text-sm font-semibold border-b-2 transition-all',
+            'group relative px-6 py-2.5 text-sm font-semibold rounded-lg transition-all duration-300 flex items-center gap-2',
             tabActiva === 'productos'
-              ? 'border-[#e27246] text-[#e27246]'
-              : 'border-transparent text-gray-500 hover:text-gray-300'
+              ? 'bg-[#e27246]/15 text-[#e27246] shadow-lg shadow-[#e27246]/20'
+              : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800/30'
           ]"
         >
-          Productos
+          <span class="material-symbols-outlined text-lg">restaurant_menu</span>
+          <span>Productos</span>
+          <span
+            v-if="tabActiva === 'productos'"
+            class="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[#e27246] via-[#e27246] to-transparent rounded-full"
+          ></span>
         </button>
       </div>
 
