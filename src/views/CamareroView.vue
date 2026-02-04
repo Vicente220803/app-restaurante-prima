@@ -263,8 +263,22 @@ const cerrarSidebar = () => {
 const cerrarSesion = () => {
   sessionStorage.removeItem('adminAuth')
   sessionStorage.removeItem('adminUser')
-  router.push('/admin/login')
+  router.push('/')
 }
+
+// Obtener rol del usuario actual
+const userRole = computed(() => {
+  try {
+    const userData = sessionStorage.getItem('adminUser')
+    if (userData) {
+      const user = JSON.parse(userData)
+      return user.rol
+    }
+  } catch (e) {
+    console.error('Error parsing user role:', e)
+  }
+  return null
+})
 
 onMounted(() => {
   cargarPedidos()
@@ -291,7 +305,7 @@ const etiquetaEstado = { libre: 'Libre', ocupada: 'Ocupada', cuenta: 'Por cobrar
   <div class="bg-[#0a0b0d] font-sans text-gray-100 min-h-screen">
     <div class="flex h-screen">
       <!-- Sidebar de Navegación -->
-      <aside class="w-64 border-r border-gray-800/50 bg-[#0f1115] flex flex-col shrink-0">
+      <aside v-if="userRole !== 'camarero'" class="w-64 border-r border-gray-800/50 bg-[#0f1115] flex flex-col shrink-0">
         <!-- Logo -->
         <div class="p-5 border-b border-gray-800/50">
           <div class="flex items-center gap-3">
@@ -384,6 +398,11 @@ const etiquetaEstado = { libre: 'Libre', ocupada: 'Ocupada', cuenta: 'Por cobrar
 
             <button @click="cargarPedidos" class="p-3 bg-gray-800 hover:bg-gray-700 rounded-xl transition-colors">
               <span class="material-symbols-outlined text-gray-400">refresh</span>
+            </button>
+
+            <!-- Logout button for camarero -->
+            <button v-if="userRole === 'camarero'" @click="cerrarSesion" class="p-3 bg-gray-800 hover:bg-gray-700 rounded-xl transition-colors" title="Cerrar Sesión">
+              <span class="material-symbols-outlined text-gray-400">logout</span>
             </button>
           </div>
         </header>
