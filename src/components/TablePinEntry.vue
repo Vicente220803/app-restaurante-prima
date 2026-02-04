@@ -227,37 +227,45 @@ const submitPin = async () => {
   error.value = ''
 
   try {
-    // PINs por defecto si no hay restaurante en BD
-    const pinDia = restaurante.value?.pin_dia || '1111'
-    const pinCamarero = restaurante.value?.pin_camarero || '1234'
-    const pinCocina = restaurante.value?.pin_cocina || '2222'
-    const pinGerente = restaurante.value?.pin_gerente || '0000'
+    // Primero: Verificar si es un PIN de personal (roles_usuario)
+    const { data: staffData, error: staffError } = await supabase
+      .from('roles_usuario')
+      .select('*')
+      .eq('pin', pin)
+      .single()
 
-    // Verificar qué tipo de PIN es
-    if (pin === pinGerente) {
-      // PIN de gerente -> Admin
-      sessionStorage.setItem('userRole', 'gerente')
+    if (staffData && !staffError) {
+      // PIN de personal -> Guardar datos de autenticación
       sessionStorage.setItem('adminAuth', 'true')
-      router.push('/admin')
-    } else if (pin === pinCamarero) {
-      // PIN de camarero -> Vista camarero
-      sessionStorage.setItem('userRole', 'camarero')
-      sessionStorage.setItem('adminAuth', 'true')
-      router.push('/camarero')
-    } else if (pin === pinCocina) {
-      // PIN de cocina -> Vista cocina
-      sessionStorage.setItem('userRole', 'cocina')
-      sessionStorage.setItem('adminAuth', 'true')
-      router.push('/cocina')
-    } else if (pin === pinDia) {
+      sessionStorage.setItem('adminUser', JSON.stringify({
+        id: staffData.id,
+        nombre: staffData.nombre,
+        rol: staffData.rol
+      }))
+
+      // Redirigir según el rol
+      const roleRoutes = {
+        'cocina': '/cocina',
+        'camarero': '/camarero',
+        'gerente': '/gestion',
+        'admin': '/admin/productos'
+      }
+      router.push(roleRoutes[staffData.rol] || '/admin/login')
+      return
+    }
+
+    // Segundo: Verificar PIN del día para clientes
+    const pinDia = restaurante.value?.pin_dia || '1111'
+    if (pin === pinDia) {
       // PIN del día -> Menú para clientes
       sessionStorage.setItem('userRole', 'cliente')
       sessionStorage.setItem('clientAuth', 'true')
       router.push(`/${props.restaurantSlug}/menu?table=${props.tableNumber}`)
-    } else {
-      // PIN incorrecto
-      throw new Error('PIN incorrecto')
+      return
     }
+
+    // PIN incorrecto
+    throw new Error('PIN incorrecto')
   } catch (err) {
     error.value = 'PIN incorrecto. Pide el PIN a tu camarero.'
     pinDigits.value = ['', '', '', '']
