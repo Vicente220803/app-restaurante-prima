@@ -51,18 +51,19 @@ const routes = [
     path: '/admin/dashboard',
     name: 'AdminDashboard',
     component: AdminView,
-    meta: { requiresAdmin: true }
+    meta: { requiresRole: ['admin'] }
   },
   {
     path: '/admin/productos',
     name: 'AdminProductos',
     component: AdminProductosView,
-    meta: { requiresAdmin: true }
+    meta: { requiresRole: ['admin'] }
   },
   {
     path: '/cocina',
     name: 'Cocina',
-    component: CocinaView
+    component: CocinaView,
+    meta: { requiresRole: ['cocina'] }
   },
   {
     path: '/comandas',
@@ -73,19 +74,19 @@ const routes = [
     path: '/camarero',
     name: 'Camarero',
     component: CamareroView,
-    meta: { requiresAdmin: true }
+    meta: { requiresRole: ['camarero'] }
   },
   {
     path: '/pago/:mesaId',
     name: 'Payment',
     component: PaymentView,
-    meta: { requiresAdmin: true }
+    meta: { requiresRole: ['camarero'] }
   },
   {
     path: '/gestion',
     name: 'Gestion',
     component: GestionView,
-    meta: { requiresAdmin: true }
+    meta: { requiresRole: ['gerente', 'admin'] }
   },
   // Redireccion por defecto - ir a la entrada de mesa para demo
   {
@@ -99,14 +100,40 @@ const router = createRouter({
   routes
 })
 
-// Navigation guard para proteger rutas de admin
+// Navigation guard para proteger rutas según roles
 router.beforeEach((to, from, next) => {
-  if (to.meta.requiresAdmin) {
+  const requiresRole = to.meta.requiresRole
+
+  if (requiresRole && requiresRole.length > 0) {
     const isAuthenticated = sessionStorage.getItem('adminAuth') === 'true'
-    if (!isAuthenticated) {
+    const userDataStr = sessionStorage.getItem('adminUser')
+
+    if (!isAuthenticated || !userDataStr) {
       next('/admin/login')
-    } else {
+      return
+    }
+
+    try {
+      const userData = JSON.parse(userDataStr)
+      const userRole = userData.rol
+
+      // Verificar si el rol del usuario está permitido para esta ruta
+      if (!requiresRole.includes(userRole)) {
+        // Redirigir a la ruta correcta según su rol
+        const roleRoutes = {
+          'cocina': '/cocina',
+          'camarero': '/camarero',
+          'gerente': '/gestion',
+          'admin': '/admin/productos'
+        }
+        next(roleRoutes[userRole] || '/admin/login')
+        return
+      }
+
       next()
+    } catch (e) {
+      console.error('Error parsing user data:', e)
+      next('/admin/login')
     }
   } else {
     next()

@@ -129,7 +129,15 @@ watch(pin, async (newPin) => {
     error.value = ''
 
     try {
-      // PIN de desarrollo: 1234 siempre funciona
+      // Mapeo de roles a rutas
+      const roleRoutes = {
+        'cocina': '/cocina',
+        'camarero': '/camarero',
+        'gerente': '/gestion',
+        'admin': '/admin/productos'
+      }
+
+      // PIN de desarrollo: 1234 siempre funciona como admin
       if (newPin === '1234') {
         adminStore.login({
           id: 1,
@@ -139,8 +147,7 @@ watch(pin, async (newPin) => {
           restaurante_id: null
         })
         sessionStorage.setItem('adminAuth', 'true')
-        // Admin/Gerente va primero al SALÓN (mesas)
-        router.push('/camarero')
+        router.push(roleRoutes['admin'])
         return
       }
 
@@ -167,15 +174,9 @@ watch(pin, async (newPin) => {
         })
         sessionStorage.setItem('adminAuth', 'true')
 
-        // Redirigir segun el rol
-        if (data.rol === 'cocina') {
-          router.push('/cocina')
-        } else if (data.rol === 'camarero') {
-          router.push('/comandas')
-        } else {
-          // Admin/Gerente va primero al SALÓN (mesas)
-          router.push('/camarero')
-        }
+        // Redirigir según el rol
+        const route = roleRoutes[data.rol] || '/admin/login'
+        router.push(route)
       }
     } catch (e) {
       console.error('Error verificando PIN:', e)
@@ -189,8 +190,7 @@ watch(pin, async (newPin) => {
           restaurante_id: null
         })
         sessionStorage.setItem('adminAuth', 'true')
-        // Admin/Gerente va primero al SALÓN (mesas)
-        router.push('/camarero')
+        router.push('/admin/productos')
         return
       }
       error.value = 'Error de conexion'
