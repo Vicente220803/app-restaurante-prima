@@ -49,7 +49,7 @@ const routes = [
     path: '/admin/dashboard',
     name: 'AdminDashboard',
     component: AdminView,
-    meta: { requiresRole: ['admin'] }
+    meta: { requiresRole: ['admin', 'gerente'] }
   },
   {
     path: '/admin/productos',

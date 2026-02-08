@@ -247,7 +247,7 @@ const submitPin = async () => {
       const roleRoutes = {
         'cocina': '/cocina',
         'camarero': '/camarero',
-        'gerente': '/gestion',
+        'gerente': '/admin/dashboard',
         'admin': '/admin/productos'
       }
       router.push(roleRoutes[staffData.rol] || '/admin/login')
