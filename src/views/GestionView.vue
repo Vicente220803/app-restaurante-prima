@@ -77,12 +77,24 @@ const regenerarPin = async () => {
     pinDiario.value = nuevoPin
     ultimaActualizacion.value = new Date()
 
-    // Guardar en localStorage (en producción sería en Supabase)
-    localStorage.setItem('pinDiarioClientes', nuevoPin)
-    localStorage.setItem('pinDiarioFecha', ultimaActualizacion.value.toISOString())
-    localStorage.setItem('exigirPinPedidos', exigirPin.value.toString())
+    // Guardar en Supabase
+    const { error } = await supabase
+      .from('restaurantes')
+      .update({
+        pin_dia: nuevoPin,
+        actualizado_en: ultimaActualizacion.value.toISOString()
+      })
+      .eq('slug', 'la-toscana')
+
+    if (error) {
+      console.error('Error guardando PIN en BD:', error)
+      mostrarMensaje('error', 'Error al guardar el PIN')
+    } else {
+      mostrarMensaje('exito', 'PIN regenerado correctamente')
+    }
   } catch (e) {
     console.error('Error regenerando PIN:', e)
+    mostrarMensaje('error', 'Error al regenerar el PIN')
   } finally {
     loading.value = false
   }
@@ -427,27 +439,43 @@ function mostrarMensaje(tipo, texto) {
 
 // Cargar configuración guardada
 onMounted(async () => {
-  const pinGuardado = localStorage.getItem('pinDiarioClientes')
-  const fechaGuardada = localStorage.getItem('pinDiarioFecha')
-  const exigirGuardado = localStorage.getItem('exigirPinPedidos')
+  try {
+    // Cargar PIN desde Supabase
+    const { data: restaurante } = await supabase
+      .from('restaurantes')
+      .select('pin_dia, actualizado_en')
+      .eq('slug', 'la-toscana')
+      .single()
 
-  if (pinGuardado) {
-    pinDiario.value = pinGuardado
-  } else {
-    // Generar PIN inicial si no existe
-    pinDiario.value = generarPinAleatorio()
-    localStorage.setItem('pinDiarioClientes', pinDiario.value)
-  }
+    if (restaurante && restaurante.pin_dia) {
+      pinDiario.value = restaurante.pin_dia
+      if (restaurante.actualizado_en) {
+        ultimaActualizacion.value = new Date(restaurante.actualizado_en)
+      }
+    } else {
+      // Si no existe PIN, generar uno nuevo
+      const nuevoPin = generarPinAleatorio()
+      pinDiario.value = nuevoPin
+      ultimaActualizacion.value = new Date()
 
-  if (fechaGuardada) {
-    ultimaActualizacion.value = new Date(fechaGuardada)
-  } else {
-    ultimaActualizacion.value = new Date()
-    localStorage.setItem('pinDiarioFecha', ultimaActualizacion.value.toISOString())
-  }
-
-  if (exigirGuardado !== null) {
-    exigirPin.value = exigirGuardado === 'true'
+      // Guardar en Supabase
+      await supabase
+        .from('restaurantes')
+        .update({
+          pin_dia: nuevoPin,
+          actualizado_en: ultimaActualizacion.value.toISOString()
+        })
+        .eq('slug', 'la-toscana')
+    }
+  } catch (e) {
+    console.error('Error cargando configuración:', e)
+    // Fallback a localStorage si falla Supabase
+    const pinGuardado = localStorage.getItem('pinDiarioClientes')
+    if (pinGuardado) {
+      pinDiario.value = pinGuardado
+    } else {
+      pinDiario.value = generarPinAleatorio()
+    }
   }
 
   // Cargar productos y categorías
