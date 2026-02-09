@@ -78,7 +78,7 @@ const routes = [
     path: '/pago/:mesaId',
     name: 'Payment',
     component: PaymentView,
-    meta: { requiresRole: ['camarero'] }
+    meta: { requiresRole: ['camarero', 'gerente'] }
   },
   {
     path: '/gestion',

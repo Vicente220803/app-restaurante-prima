@@ -57,15 +57,36 @@
       <!-- PANEL Tab -->
       <div v-if="tabActiva === 'panel'" class="p-8">
         <div class="max-w-7xl mx-auto">
-          <!-- Header -->
+          <!-- Header con Botón Comenzar Turno -->
           <header class="flex justify-between items-center mb-10">
             <div>
               <h2 class="text-3xl font-extrabold tracking-tight">Panel de Control</h2>
-              <p style="color: #9ca3af;">Resumen de actividad en tiempo real</p>
+              <p style="color: #9ca3af;">{{ horaTurno ? 'Turno en progreso' : 'Inicia un turno para comenzar' }}</p>
             </div>
-            <div class="flex items-center px-4 py-2 rounded-xl border" style="background-color: #1f1f1f; border-color: #2d2d2d;">
-              <span class="material-symbols-outlined mr-2 text-xl" style="color: #9ca3af;">calendar_today</span>
-              <span class="text-sm font-semibold">{{ fechaHoy }}</span>
+            <div class="flex items-center gap-4">
+              <div class="flex items-center px-4 py-2 rounded-xl border" style="background-color: #1f1f1f; border-color: #2d2d2d;">
+                <span class="material-symbols-outlined mr-2 text-xl" style="color: #9ca3af;">calendar_today</span>
+                <span class="text-sm font-semibold">{{ fechaHoy }}</span>
+              </div>
+              <button
+                v-if="!horaTurno"
+                @click="comenzarTurno"
+                :disabled="cargando"
+                class="px-6 py-3 rounded-xl font-bold text-white transition-all flex items-center gap-2"
+                style="background-color: #f97316;"
+              >
+                <span class="material-symbols-outlined">play_arrow</span>
+                Comenzar Turno
+              </button>
+              <button
+                v-else
+                @click="() => { horaTurno = null; sessionStorage.removeItem('horaTurno') }"
+                class="px-6 py-3 rounded-xl font-bold text-white transition-all flex items-center gap-2"
+                style="background-color: #ef4444;"
+              >
+                <span class="material-symbols-outlined">stop_circle</span>
+                Finalizar Turno
+              </button>
             </div>
           </header>
 
@@ -77,12 +98,12 @@
                 <div class="p-3 rounded-xl" style="background-color: rgba(249, 115, 22, 0.1);">
                   <span class="material-symbols-outlined" style="color: #f97316;">payments</span>
                 </div>
-                <span class="text-xs font-bold px-2 py-1 rounded-lg flex items-center gap-1" style="background-color: rgba(34, 197, 94, 0.1); color: #22c55e;">
-                  <span class="material-symbols-outlined text-sm">trending_up</span> +12.5%
+                <span class="text-xs font-bold px-2 py-1 rounded-lg" style="background-color: rgba(34, 197, 94, 0.1); color: #22c55e;">
+                  En turno
                 </span>
               </div>
               <p class="text-sm font-medium" style="color: #9ca3af;">Ventas Totales</p>
-              <h3 class="text-2xl font-extrabold mt-1">2.450,80€</h3>
+              <h3 class="text-2xl font-extrabold mt-1">{{ ventasTotales.toFixed(2) }}€</h3>
             </div>
 
             <!-- Active Orders Card -->
@@ -91,10 +112,10 @@
                 <div class="p-3 rounded-xl" style="background-color: rgba(34, 197, 94, 0.1);">
                   <span class="material-symbols-outlined" style="color: #22c55e;">receipt_long</span>
                 </div>
-                <span class="text-xs font-bold px-2 py-1 rounded-lg" style="background-color: #1f1f1f; color: #9ca3af;">En curso</span>
+                <span class="text-xs font-bold px-2 py-1 rounded-lg" style="background-color: #1f1f1f; color: #9ca3af;">En progreso</span>
               </div>
               <p class="text-sm font-medium" style="color: #9ca3af;">Pedidos Activos</p>
-              <h3 class="text-2xl font-extrabold mt-1">18</h3>
+              <h3 class="text-2xl font-extrabold mt-1">{{ pedidosActivos }}</h3>
             </div>
 
             <!-- Table Occupancy Card -->
@@ -104,10 +125,10 @@
                   <span class="material-symbols-outlined" style="color: #3b82f6;">deck</span>
                 </div>
               </div>
-              <p class="text-sm font-medium" style="color: #9ca3af;">Ocupacion Mesas</p>
+              <p class="text-sm font-medium" style="color: #9ca3af;">Ocupación Mesas</p>
               <div class="flex items-end justify-between mt-1">
-                <h3 class="text-2xl font-extrabold">85%</h3>
-                <p class="text-xs pb-1" style="color: #6b7280;">22 de 26 mesas</p>
+                <h3 class="text-2xl font-extrabold">{{ Math.round((mesasOcupadas / totalMesas) * 100) }}%</h3>
+                <p class="text-xs pb-1" style="color: #6b7280;">{{ mesasOcupadas }} de {{ totalMesas }} mesas</p>
               </div>
             </div>
           </div>
@@ -116,44 +137,41 @@
           <div class="rounded-2xl overflow-hidden mb-8" style="background-color: #0a0a0a; border: 1px solid #1f1f1f;">
             <div class="p-6 flex justify-between items-center" style="border-bottom: 1px solid #1f1f1f;">
               <h4 class="font-bold text-lg">Pedidos Recientes</h4>
-              <button class="text-sm font-bold hover:underline" style="color: #f97316;">Ver todos</button>
+              <span v-if="!horaTurno" class="text-xs" style="color: #6b7280;">Inicia un turno para ver pedidos</span>
             </div>
-            <div class="overflow-x-auto">
+            <div v-if="pedidosRecientes.length > 0" class="overflow-x-auto">
               <table class="w-full text-left">
                 <thead>
                   <tr class="text-xs uppercase tracking-wider" style="color: #6b7280; border-bottom: 1px solid #1f1f1f;">
-                    <th class="px-6 py-4 font-semibold">Pedido</th>
+                    <th class="px-6 py-4 font-semibold">ID Pedido</th>
                     <th class="px-6 py-4 font-semibold">Mesa</th>
                     <th class="px-6 py-4 font-semibold">Estado</th>
                     <th class="px-6 py-4 font-semibold">Total</th>
-                    <th class="px-6 py-4 font-semibold">Tiempo</th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr class="transition-colors hover:bg-[#1f1f1f]/50" style="border-bottom: 1px solid #1f1f1f;">
-                    <td class="px-6 py-4 font-medium">#1294</td>
-                    <td class="px-6 py-4">Mesa 04</td>
+                  <tr v-for="pedido in pedidosRecientes" :key="pedido.id" class="transition-colors hover:bg-[#1f1f1f]/50" style="border-bottom: 1px solid #1f1f1f;">
+                    <td class="px-6 py-4 font-medium">{{ pedido.id.substring(0, 8) }}</td>
+                    <td class="px-6 py-4">Mesa {{ pedido.mesa }}</td>
                     <td class="px-6 py-4">
-                      <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wide" style="background-color: rgba(249, 115, 22, 0.1); color: #f97316;">
-                        Preparando
+                      <span
+                        class="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wide"
+                        :style="{
+                          backgroundColor: pedido.estado === 'pendiente' ? 'rgba(249, 115, 22, 0.1)' : 'rgba(34, 197, 94, 0.1)',
+                          color: pedido.estado === 'pendiente' ? '#f97316' : '#22c55e'
+                        }"
+                      >
+                        {{ pedido.estado === 'pendiente' ? 'Preparando' : 'Pagado' }}
                       </span>
                     </td>
-                    <td class="px-6 py-4 font-bold">42,50€</td>
-                    <td class="px-6 py-4 text-sm" style="color: #9ca3af;">12 min</td>
-                  </tr>
-                  <tr class="transition-colors hover:bg-[#1f1f1f]/50" style="border-bottom: 1px solid #1f1f1f;">
-                    <td class="px-6 py-4 font-medium">#1293</td>
-                    <td class="px-6 py-4">Mesa 12</td>
-                    <td class="px-6 py-4">
-                      <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wide" style="background-color: rgba(34, 197, 94, 0.1); color: #22c55e;">
-                        Listo
-                      </span>
-                    </td>
-                    <td class="px-6 py-4 font-bold">28,00€</td>
-                    <td class="px-6 py-4 text-sm" style="color: #9ca3af;">25 min</td>
+                    <td class="px-6 py-4 font-bold">{{ pedido.total.toFixed(2) }}€</td>
                   </tr>
                 </tbody>
               </table>
+            </div>
+            <div v-else class="p-8 text-center" style="color: #6b7280;">
+              <span class="material-symbols-outlined text-4xl mb-2 block" style="color: #4b5563;">receipt_long</span>
+              <p>No hay pedidos aún</p>
             </div>
           </div>
         </div>
@@ -195,9 +213,10 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAdminStore } from '../store/admin'
+import { supabase } from '../supabase'
 import CamareroView from '../views/CamareroView.vue'
 import AdminProductosView from '../views/AdminProductosView.vue'
 import CocinaView from '../views/CocinaView.vue'
@@ -216,6 +235,16 @@ const tabs = [
   { id: 'panel', label: 'PANEL', icon: 'dashboard_customize' }
 ]
 
+// Estado del turno y métricas
+const horaTurno = ref(null)
+const ventasTotales = ref(0)
+const pedidosActivos = ref(0)
+const mesasOcupadas = ref(0)
+const totalMesas = ref(20)
+const pedidosRecientes = ref([])
+const cargando = ref(false)
+let subscription = null
+
 // Iniciales del nombre
 const iniciales = computed(() => {
   const nombre = adminStore.nombre || 'Usuario'
@@ -231,6 +260,93 @@ const fechaHoy = computed(() => {
   const fecha = new Date()
   const opciones = { day: 'numeric', month: 'short' }
   return `Hoy, ${fecha.toLocaleDateString('es-ES', opciones)}`
+})
+
+// Cargar métricas del turno
+async function cargarMetricas() {
+  if (!horaTurno.value) return
+
+  try {
+    // Consultar pedidos del turno actual
+    const { data: pedidos } = await supabase
+      .from('pedidos')
+      .select('id, mesa, total, estado, created_at')
+      .gte('created_at', new Date(horaTurno.value).toISOString())
+      .order('created_at', { ascending: false })
+
+    if (pedidos) {
+      // Pedidos activos (pendientes)
+      pedidosActivos.value = pedidos.filter(p => p.estado === 'pendiente').length
+
+      // Ventas totales (pagados)
+      ventasTotales.value = pedidos
+        .filter(p => p.estado === 'pagado')
+        .reduce((sum, p) => sum + (p.total || 0), 0)
+
+      // Mesas ocupadas (únicas con pedidos pendientes)
+      const mesasUnicas = new Set(
+        pedidos
+          .filter(p => p.estado === 'pendiente')
+          .map(p => p.mesa)
+      )
+      mesasOcupadas.value = mesasUnicas.size
+
+      // Pedidos recientes
+      pedidosRecientes.value = pedidos.slice(0, 5)
+    }
+  } catch (error) {
+    console.error('Error cargando métricas:', error)
+  }
+}
+
+// Comenzar turno
+async function comenzarTurno() {
+  horaTurno.value = new Date()
+  ventasTotales.value = 0
+  pedidosActivos.value = 0
+  mesasOcupadas.value = 0
+  pedidosRecientes.value = []
+
+  // Guardar hora en sessionStorage para persistencia
+  sessionStorage.setItem('horaTurno', horaTurno.value.toISOString())
+
+  await cargarMetricas()
+  suscribirseACambios()
+}
+
+// Suscribirse a cambios en tiempo real
+function suscribirseACambios() {
+  if (subscription) subscription.unsubscribe()
+
+  subscription = supabase
+    .channel('pedidos-cambios')
+    .on(
+      'postgres_changes',
+      {
+        event: '*',
+        schema: 'public',
+        table: 'pedidos'
+      },
+      () => {
+        cargarMetricas()
+      }
+    )
+    .subscribe()
+}
+
+// Cargar hora de turno al montar
+onMounted(() => {
+  const horaGuardada = sessionStorage.getItem('horaTurno')
+  if (horaGuardada) {
+    horaTurno.value = new Date(horaGuardada)
+    cargarMetricas()
+    suscribirseACambios()
+  }
+})
+
+// Limpiar suscripción al desmontar
+onUnmounted(() => {
+  if (subscription) subscription.unsubscribe()
 })
 
 // Cerrar sesion

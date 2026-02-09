@@ -2,9 +2,11 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { supabase } from '../supabase'
+import { useAdminStore } from '../store/admin'
 
 const router = useRouter()
 const route = useRoute()
+const adminStore = useAdminStore()
 
 // Estado
 const mesa = ref(null)
@@ -141,9 +143,20 @@ const cargarDatos = async () => {
   }
 }
 
-// Volver atrás
+// Volver atrás (según el rol)
 const volverAtras = () => {
-  router.push('/camarero')
+  const rutaPorRol = {
+    'camarero': '/camarero',
+    'gerente': '/admin/dashboard',
+    'admin': '/admin/dashboard'
+  }
+  // Leer rol del store o de sessionStorage como fallback
+  let rol = adminStore.rol
+  if (!rol) {
+    const userData = JSON.parse(sessionStorage.getItem('adminUser') || '{}')
+    rol = userData.rol || 'camarero'
+  }
+  router.push(rutaPorRol[rol] || '/camarero')
 }
 
 // Seleccionar división por persona
@@ -230,7 +243,20 @@ const finalizarYVolver = async () => {
     for (const pedido of pedidos.value) {
       await supabase.from('pedidos').update({ estado: 'pagado' }).eq('id', pedido.id)
     }
-    router.push('/camarero')
+
+    // Redirigir según el rol
+    const rutaPorRol = {
+      'camarero': '/camarero',
+      'gerente': '/admin/dashboard',
+      'admin': '/admin/dashboard'
+    }
+    // Leer rol del store o de sessionStorage como fallback
+    let rol = adminStore.rol
+    if (!rol) {
+      const userData = JSON.parse(sessionStorage.getItem('adminUser') || '{}')
+      rol = userData.rol || 'camarero'
+    }
+    router.push(rutaPorRol[rol] || '/camarero')
   } catch (e) {
     console.error('Error finalizando:', e)
   }

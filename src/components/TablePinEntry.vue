@@ -124,8 +124,10 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { supabase } from '../supabase'
+import { useAdminStore } from '../store/admin'
 
 const router = useRouter()
+const adminStore = useAdminStore()
 
 const props = defineProps({
   restaurantName: {
@@ -235,13 +237,16 @@ const submitPin = async () => {
       .single()
 
     if (staffData && !staffError) {
-      // PIN de personal -> Guardar datos de autenticación
-      sessionStorage.setItem('adminAuth', 'true')
-      sessionStorage.setItem('adminUser', JSON.stringify({
+      // PIN de personal -> Guardar datos de autenticación y actualizar store
+      const userData = {
         id: staffData.id,
         nombre: staffData.nombre,
         rol: staffData.rol
-      }))
+      }
+
+      sessionStorage.setItem('adminAuth', 'true')
+      sessionStorage.setItem('adminUser', JSON.stringify(userData))
+      adminStore.login(userData)
 
       // Redirigir según el rol
       const roleRoutes = {
