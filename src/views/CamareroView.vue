@@ -304,68 +304,6 @@ const etiquetaEstado = { libre: 'Libre', ocupada: 'Ocupada', cuenta: 'Por cobrar
 <template>
   <div class="bg-[#0a0b0d] font-sans text-gray-100 min-h-screen">
     <div class="flex h-screen">
-      <!-- Sidebar de Navegación -->
-      <aside v-if="userRole !== 'camarero'" class="w-64 border-r border-gray-800/50 bg-[#0f1115] flex flex-col shrink-0">
-        <!-- Logo -->
-        <div class="p-5 border-b border-gray-800/50">
-          <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[#e27246] to-[#c25f38] flex items-center justify-center">
-              <span class="material-symbols-outlined text-white text-xl">restaurant</span>
-            </div>
-            <div>
-              <h1 class="font-black text-lg tracking-tight">La Toscana</h1>
-              <p class="text-[10px] text-gray-500 uppercase tracking-widest">Sistema TPV</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Navegación -->
-        <nav class="flex-1 p-4 space-y-2">
-          <router-link
-            to="/camarero"
-            class="flex items-center gap-3 px-4 py-3 bg-[#e27246]/10 text-[#e27246] rounded-xl font-semibold"
-          >
-            <span class="material-symbols-outlined">table_restaurant</span>
-            <span>SALÓN</span>
-          </router-link>
-
-          <router-link
-            to="/admin/productos"
-            class="flex items-center gap-3 px-4 py-3 text-gray-400 hover:bg-gray-800/50 hover:text-white rounded-xl transition-all"
-          >
-            <span class="material-symbols-outlined">restaurant_menu</span>
-            <span>PRODUCTOS</span>
-          </router-link>
-
-          <router-link
-            to="/cocina"
-            class="flex items-center gap-3 px-4 py-3 text-gray-400 hover:bg-gray-800/50 hover:text-white rounded-xl transition-all"
-          >
-            <span class="material-symbols-outlined">soup_kitchen</span>
-            <span>Cocina</span>
-          </router-link>
-
-          <router-link
-            to="/gestion"
-            class="flex items-center gap-3 px-4 py-3 text-gray-400 hover:bg-gray-800/50 hover:text-white rounded-xl transition-all"
-          >
-            <span class="material-symbols-outlined">admin_panel_settings</span>
-            <span>GESTIÓN</span>
-          </router-link>
-        </nav>
-
-        <!-- Footer del sidebar -->
-        <div class="p-4 border-t border-gray-800/50">
-          <button
-            @click="cerrarSesion"
-            class="w-full py-3 border border-gray-700 text-gray-400 text-sm font-medium rounded-xl hover:bg-gray-800 hover:text-white transition-all flex items-center justify-center gap-2"
-          >
-            <span class="material-symbols-outlined text-sm">logout</span>
-            Cerrar Sesión
-          </button>
-        </div>
-      </aside>
-
       <!-- Contenido Principal -->
       <main class="flex-1 flex flex-col overflow-hidden">
         <!-- Header -->
