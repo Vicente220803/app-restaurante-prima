@@ -62,14 +62,8 @@ const confirmarPedido = async () => {
 
     if (error) throw error
 
-    // Mostrar confirmación
+    // Mostrar confirmación (sin limpiar ni redirigir automáticamente)
     pedidoConfirmado.value = true
-
-    // Limpiar carrito después de 4 segundos y volver al menú
-    setTimeout(() => {
-      cartStore.clearCart()
-      router.push(`/${restaurantSlug}/menu?table=${tableNumber}`)
-    }, 4000)
 
   } catch (e) {
     console.error('Error guardando pedido:', e)
@@ -82,25 +76,6 @@ const confirmarPedido = async () => {
 <template>
   <div class="bg-[#fafaf9] dark:bg-[#21242c] text-[#1a120e] dark:text-gray-100 min-h-screen font-display">
 
-    <!-- Overlay de confirmación -->
-    <Teleport to="body">
-      <Transition name="fade">
-        <div v-if="pedidoConfirmado" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
-          <div class="bg-white dark:bg-[#2d313a] rounded-3xl p-10 max-w-md w-full text-center shadow-2xl">
-            <div class="w-20 h-20 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
-              <span class="material-symbols-outlined text-5xl text-green-500">check_circle</span>
-            </div>
-            <h2 class="text-3xl font-black mb-3">¡Pedido Confirmado!</h2>
-            <p class="text-gray-500 dark:text-gray-400 mb-2">Tu pedido ha sido enviado a cocina</p>
-            <p class="text-sm text-gray-400">Mesa {{ tableNumber }}</p>
-            <div class="mt-6 flex items-center justify-center gap-2 text-[#e27246]">
-              <span class="material-symbols-outlined animate-spin">progress_activity</span>
-              <span class="text-sm font-medium">Volviendo al menú...</span>
-            </div>
-          </div>
-        </div>
-      </Transition>
-    </Teleport>
 
     <div class="max-w-[1200px] mx-auto px-4 md:px-6 py-6 md:py-8">
       <!-- Top Navigation -->
@@ -125,8 +100,12 @@ const confirmarPedido = async () => {
         <!-- Left Column: Order Items -->
         <div class="lg:col-span-8 flex flex-col gap-6">
           <div class="flex flex-col gap-1">
-            <h2 class="text-3xl md:text-4xl font-black tracking-tight">Tu Pedido</h2>
-            <p class="text-[#946451] dark:text-gray-400 font-medium">Mesa {{ tableNumber }} - Revisa tu selección</p>
+            <h2 class="text-3xl md:text-4xl font-black tracking-tight">
+              {{ pedidoConfirmado ? '✓ Pedido Confirmado' : 'Tu Pedido' }}
+            </h2>
+            <p :class="['font-medium', pedidoConfirmado ? 'text-green-600 dark:text-green-400' : 'text-[#946451] dark:text-gray-400']">
+              {{ pedidoConfirmado ? 'Tu pedido ha sido enviado a cocina' : `Mesa ${tableNumber} - Revisa tu selección` }}
+            </p>
           </div>
 
           <!-- Empty Cart State -->
@@ -174,7 +153,8 @@ const confirmarPedido = async () => {
                     <p v-if="item.opcionesResumen?.length" class="text-sm text-[#946451] dark:text-gray-400 mt-1 italic truncate">
                       {{ item.opcionesResumen.map(o => o.nombre).join(', ') }}
                     </p>
-                    <div class="flex gap-4 mt-2 md:mt-3">
+                    <!-- Botón QUITAR solo visible si el pedido no está confirmado -->
+                    <div v-if="!pedidoConfirmado" class="flex gap-4 mt-2 md:mt-3">
                       <button
                         @click="removeItem(item.cartItemId)"
                         class="flex items-center gap-1 text-xs font-bold text-gray-400 hover:text-red-500 transition-colors"
@@ -188,7 +168,8 @@ const confirmarPedido = async () => {
 
                 <div class="flex flex-col items-end gap-2 md:gap-3 ml-4">
                   <span class="font-extrabold text-lg md:text-xl">{{ (item.precioTotal * item.cantidad).toFixed(2) }}€</span>
-                  <div class="flex items-center gap-2 md:gap-3 bg-[#f7f5f3] dark:bg-[#21242c] p-1 rounded-full border border-[#f2ebe8] dark:border-gray-700">
+                  <!-- Controles de cantidad solo visibles si el pedido no está confirmado -->
+                  <div v-if="!pedidoConfirmado" class="flex items-center gap-2 md:gap-3 bg-[#f7f5f3] dark:bg-[#21242c] p-1 rounded-full border border-[#f2ebe8] dark:border-gray-700">
                     <button
                       @click="updateQuantity(item.cartItemId, -1)"
                       class="w-7 h-7 md:w-8 md:h-8 flex items-center justify-center rounded-full bg-white dark:bg-[#2d313a] shadow-sm text-[#e27246] hover:bg-[#e27246] hover:text-white transition-all"
@@ -202,6 +183,10 @@ const confirmarPedido = async () => {
                     >
                       <span class="material-symbols-outlined text-sm">add</span>
                     </button>
+                  </div>
+                  <!-- Mostrar solo la cantidad cuando está confirmado -->
+                  <div v-else class="text-sm font-bold text-gray-500 dark:text-gray-400">
+                    x{{ item.cantidad }}
                   </div>
                 </div>
               </div>
@@ -240,21 +225,41 @@ const confirmarPedido = async () => {
               {{ errorPedido }}
             </div>
 
-            <!-- Main CTA -->
-            <button
-              @click="confirmarPedido"
-              :disabled="enviandoPedido"
-              :class="[
-                'w-full bg-gradient-to-br from-[#e27246] to-[#D06921] text-white rounded-xl py-4 md:py-5 flex items-center justify-center gap-3 shadow-xl shadow-[#e27246]/20 transition-all group',
-                enviandoPedido ? 'opacity-70 cursor-not-allowed' : 'hover:scale-[1.02] active:scale-[0.98]'
-              ]"
-            >
-              <span v-if="enviandoPedido" class="material-symbols-outlined animate-spin">progress_activity</span>
-              <span class="font-black text-base md:text-lg tracking-wide">
-                {{ enviandoPedido ? 'ENVIANDO...' : 'CONFIRMAR PEDIDO' }}
-              </span>
-              <span v-if="!enviandoPedido" class="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span>
-            </button>
+            <!-- Main CTA - Cambiar según estado del pedido -->
+            <template v-if="!pedidoConfirmado">
+              <button
+                @click="confirmarPedido"
+                :disabled="enviandoPedido"
+                :class="[
+                  'w-full bg-gradient-to-br from-[#e27246] to-[#D06921] text-white rounded-xl py-4 md:py-5 flex items-center justify-center gap-3 shadow-xl shadow-[#e27246]/20 transition-all group',
+                  enviandoPedido ? 'opacity-70 cursor-not-allowed' : 'hover:scale-[1.02] active:scale-[0.98]'
+                ]"
+              >
+                <span v-if="enviandoPedido" class="material-symbols-outlined animate-spin">progress_activity</span>
+                <span class="font-black text-base md:text-lg tracking-wide">
+                  {{ enviandoPedido ? 'ENVIANDO...' : 'CONFIRMAR PEDIDO' }}
+                </span>
+                <span v-if="!enviandoPedido" class="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span>
+              </button>
+            </template>
+            <template v-else>
+              <!-- Cuando el pedido está confirmado, mostrar botones de navegación -->
+              <div class="space-y-3">
+                <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl p-4 text-center">
+                  <p class="text-green-700 dark:text-green-300 font-bold text-sm">
+                    <span class="material-symbols-outlined text-lg align-middle mr-2">check_circle</span>
+                    Tu pedido está en cocina
+                  </p>
+                </div>
+                <button
+                  @click="goBack"
+                  class="w-full bg-[#e27246] hover:bg-[#e27246]/90 text-white rounded-xl py-4 md:py-5 flex items-center justify-center gap-2 font-bold transition-all group"
+                >
+                  <span class="material-symbols-outlined group-hover:-translate-x-1 transition-transform">arrow_back</span>
+                  <span>Volver al Menú</span>
+                </button>
+              </div>
+            </template>
 
             <!-- Safety Guarantee -->
             <p class="text-[10px] text-center text-gray-400 font-medium uppercase tracking-[0.1em]">

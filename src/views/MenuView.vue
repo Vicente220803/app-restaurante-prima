@@ -83,6 +83,9 @@ const selectedProduct = ref(null)
 const isImageOpen = ref(false)
 const selectedImage = ref('')
 
+// Panel de pedido en mobile
+const mostrarPanelPedido = ref(false)
+
 const openImage = (imageUrl) => {
   if (imageUrl) {
     selectedImage.value = imageUrl
@@ -575,6 +578,108 @@ const getCategoryIcon = (nombre) => {
           </main>
         </template>
       </template>
+
+      <!-- Panel Mi Pedido - Sidebar derecho en desktop, drawer en mobile -->
+      <aside :class="[
+        'fixed md:relative inset-0 md:inset-auto w-full md:w-96 bg-slate-50 dark:bg-[#2a1810] border-l border-slate-200 dark:border-[#493022] flex flex-col z-40 transition-transform duration-300',
+        !mostrarPanelPedido && 'md:translate-x-0 translate-x-full md:w-80'
+      ]">
+        <!-- Header del panel -->
+        <div class="border-b border-slate-200 dark:border-[#493022] px-6 py-4 flex items-center justify-between">
+          <h3 class="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <span class="material-symbols-outlined text-[#da540b]">shopping_cart</span>
+            Mi Pedido
+          </h3>
+          <button
+            @click="mostrarPanelPedido = false"
+            class="md:hidden p-2 hover:bg-slate-200 dark:hover:bg-[#493022] rounded-lg transition-colors"
+          >
+            <span class="material-symbols-outlined text-slate-600 dark:text-[#cba590]">close</span>
+          </button>
+        </div>
+
+        <!-- Contenido del carrito -->
+        <div v-if="cartStore.countItems === 0" class="flex-1 flex flex-col items-center justify-center p-6 text-center">
+          <span class="material-symbols-outlined text-5xl text-slate-300 dark:text-[#493022] mb-4">shopping_cart</span>
+          <p class="text-slate-500 dark:text-[#cba590] font-medium">Tu carrito está vacío</p>
+          <p class="text-sm text-slate-400 dark:text-[#a68070] mt-2">Selecciona productos para empezar</p>
+        </div>
+
+        <div v-else class="flex-1 overflow-y-auto">
+          <!-- Lista de items -->
+          <div class="p-6 space-y-4">
+            <div
+              v-for="(item, index) in cartStore.items"
+              :key="index"
+              class="bg-white dark:bg-[#3a2618] rounded-lg p-4 border border-slate-200 dark:border-[#493022]"
+            >
+              <div class="flex items-start justify-between gap-3 mb-2">
+                <div class="flex-1">
+                  <h4 class="font-bold text-slate-900 dark:text-white">{{ item.nombre }}</h4>
+                  <p v-if="item.opcionesResumen && item.opcionesResumen.length > 0" class="text-xs text-slate-500 dark:text-[#a68070] mt-1">
+                    {{ item.opcionesResumen.map(o => o.nombre).join(', ') }}
+                  </p>
+                </div>
+                <span class="text-[#da540b] font-bold">x{{ item.cantidad }}</span>
+              </div>
+              <div class="flex items-center justify-between text-sm">
+                <span class="text-slate-500 dark:text-[#a68070]">{{ (item.precioTotal / item.cantidad).toFixed(2) }}€ c/u</span>
+                <span class="font-bold text-slate-900 dark:text-white">{{ item.precioTotal.toFixed(2) }}€</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Totales y botones -->
+        <div v-if="cartStore.countItems > 0" class="border-t border-slate-200 dark:border-[#493022] p-6 space-y-4">
+          <!-- Resumen de totales -->
+          <div class="space-y-2 pb-4 border-b border-slate-200 dark:border-[#493022]">
+            <div class="flex justify-between text-sm text-slate-600 dark:text-[#a68070]">
+              <span>Subtotal</span>
+              <span>{{ cartStore.totalCart.toFixed(2) }}€</span>
+            </div>
+            <div class="flex justify-between items-end">
+              <span class="font-bold text-slate-900 dark:text-white">Total</span>
+              <span class="text-2xl font-extrabold text-[#da540b]">{{ cartStore.totalCart.toFixed(2) }}€</span>
+            </div>
+          </div>
+
+          <!-- Nota de confirmación si hay modo camarero -->
+          <div v-if="modoCamarero" class="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-700 rounded-lg p-3">
+            <p class="text-xs text-amber-800 dark:text-amber-200">
+              <span class="font-bold">Pedido guardado:</span> Los productos se han añadido a la cuenta
+            </p>
+          </div>
+
+          <!-- Botones -->
+          <button
+            v-if="!modoCamarero"
+            @click="$router.push(`/${restaurantSlug}/cart?table=${tableNumber}`)"
+            class="w-full flex items-center justify-center gap-2 bg-slate-900 dark:bg-[#493022] hover:bg-slate-800 dark:hover:bg-[#5a3a2a] text-white font-bold py-3 rounded-xl transition-colors"
+          >
+            <span class="material-symbols-outlined">receipt</span>
+            Ver Pedido Completo
+          </button>
+          <button
+            @click="mostrarPanelPedido = false"
+            class="w-full md:hidden bg-[#da540b] hover:bg-[#da540b]/90 text-white font-bold py-3 rounded-xl transition-colors"
+          >
+            Seguir comprando
+          </button>
+        </div>
+      </aside>
+
+      <!-- Botón flotante para abrir panel en mobile (cuando no está abierto) -->
+      <button
+        v-if="!mostrarPanelPedido && cartStore.countItems > 0"
+        @click="mostrarPanelPedido = true"
+        class="md:hidden fixed bottom-6 right-6 bg-[#da540b] hover:bg-[#da540b]/90 text-white rounded-full p-4 shadow-lg shadow-[#da540b]/30 z-30 flex items-center justify-center"
+      >
+        <span class="material-symbols-outlined">shopping_cart</span>
+        <span class="absolute -top-2 -right-2 bg-white text-[#da540b] rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">
+          {{ cartStore.countItems }}
+        </span>
+      </button>
 
       </div>
 
