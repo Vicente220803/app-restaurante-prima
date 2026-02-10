@@ -13,7 +13,6 @@ const itemEditando = ref(null)
 const modalEdicion = ref(false)
 const zonaActiva = ref('todas') // 'todas', 'salon', 'terraza'
 const tabActiva = ref('pagar') // 'pagar' o 'carta'
-const modalBarra = ref(false) // Para pagos rápidos de barra
 
 // Configuración de mesas - Salón (10 mesas: 5 cuadradas + 5 rectangulares) + Terraza (3 cuadradas)
 const configuracionMesas = [
@@ -35,19 +34,54 @@ const configuracionMesas = [
   { id: '13', nombre: 'T3', tipo: 'cuadrada', zona: 'terraza', capacidad: 6 }
 ]
 
+// Obtener total de mesas configuradas desde sessionStorage
+const totalMesasConfiguradas = computed(() => {
+  const mesa = sessionStorage.getItem('totalMesas')
+  return mesa ? parseInt(mesa) : 13
+})
+
+// Mesas limitadas al número configurado (genera mesas adicionales si es necesario)
+const mesasLimitadas = computed(() => {
+  const total = totalMesasConfiguradas.value
+
+  // Si el total está dentro de las mesas configuradas, solo retorna lo que tenemos
+  if (total <= configuracionMesas.length) {
+    return configuracionMesas.slice(0, total)
+  }
+
+  // Si pide más mesas que las que tenemos, genera mesas adicionales
+  const mesasBase = [...configuracionMesas]
+  const mesasAGenerar = total - configuracionMesas.length
+
+  for (let i = 0; i < mesasAGenerar; i++) {
+    const numeroMesa = configuracionMesas.length + i + 1
+    const id = numeroMesa.toString()
+    const nombre = `M${numeroMesa}`
+    mesasBase.push({
+      id,
+      nombre,
+      tipo: 'cuadrada',
+      zona: 'salon',
+      capacidad: 4
+    })
+  }
+
+  return mesasBase
+})
+
 // Mesas filtradas por zona
 const mesasFiltradas = computed(() => {
-  if (zonaActiva.value === 'todas') return configuracionMesas
-  return configuracionMesas.filter(m => m.zona === zonaActiva.value)
+  if (zonaActiva.value === 'todas') return mesasLimitadas.value
+  return mesasLimitadas.value.filter(m => m.zona === zonaActiva.value)
 })
 
 // Estadísticas
 const estadisticas = computed(() => {
-  const total = configuracionMesas.length
-  const libres = configuracionMesas.filter(m => getEstadoMesa(m.id) === 'libre').length
-  const ocupadas = configuracionMesas.filter(m => getEstadoMesa(m.id) === 'ocupada').length
-  const conCuenta = configuracionMesas.filter(m => getEstadoMesa(m.id) === 'cuenta').length
-  const totalVentas = configuracionMesas.reduce((acc, m) => acc + getTotalMesa(m.id), 0)
+  const total = mesasLimitadas.value.length
+  const libres = mesasLimitadas.value.filter(m => getEstadoMesa(m.id) === 'libre').length
+  const ocupadas = mesasLimitadas.value.filter(m => getEstadoMesa(m.id) === 'ocupada').length
+  const conCuenta = mesasLimitadas.value.filter(m => getEstadoMesa(m.id) === 'cuenta').length
+  const totalVentas = mesasLimitadas.value.reduce((acc, m) => acc + getTotalMesa(m.id), 0)
   return { total, libres, ocupadas, conCuenta, totalVentas }
 })
 
@@ -230,12 +264,15 @@ const seleccionarMesa = (mesa) => {
 
 // Abrir barra para pagos rápidos
 const abrirBarra = () => {
-  modalBarra.value = true
-}
-
-// Cerrar modal barra
-const cerrarBarra = () => {
-  modalBarra.value = false
+  // Crear una "mesa" especial para barra
+  mesaSeleccionada.value = {
+    id: 'barra',
+    nombre: 'Barra',
+    tipo: 'barra',
+    zona: 'barra',
+    capacidad: 1
+  }
+  tabActiva.value = 'carta' // Abre directamente en carta para añadir productos
 }
 
 // Pedir cuenta
@@ -589,35 +626,6 @@ const etiquetaEstado = { libre: 'Libre', ocupada: 'Ocupada', cuenta: 'Por cobrar
         </template>
       </aside>
 
-      <!-- Modal Barra - Pagos Rápidos -->
-      <div v-if="modalBarra" class="fixed inset-0 bg-black/80 flex items-center justify-center z-[100] p-4">
-        <div class="bg-[#1a1d23] rounded-2xl w-full max-w-lg overflow-hidden">
-          <div class="p-6 border-b border-gray-800 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center">
-                <span class="material-symbols-outlined text-purple-400">local_bar</span>
-              </div>
-              <div>
-                <h3 class="text-xl font-bold">Barra</h3>
-                <p class="text-sm text-gray-500">Pagos Rápidos</p>
-              </div>
-            </div>
-            <button @click="cerrarBarra" class="p-2 hover:bg-gray-800 rounded-xl">
-              <span class="material-symbols-outlined">close</span>
-            </button>
-          </div>
-          <div class="p-6 text-center">
-            <p class="text-gray-400 mb-6">Función para cobros rápidos de barra sin mesa asignada</p>
-            <button
-              @click="router.push('/pago/barra')"
-              class="w-full py-4 bg-purple-500 hover:bg-purple-600 text-white font-bold rounded-xl transition-all flex items-center justify-center gap-2"
-            >
-              <span class="material-symbols-outlined">add_shopping_cart</span>
-              Nuevo Cobro de Barra
-            </button>
-          </div>
-        </div>
-      </div>
 
       <!-- Modal de Edición de Item -->
       <div v-if="modalEdicion && itemEditando" class="fixed inset-0 bg-black/80 flex items-center justify-center z-[100] p-4">

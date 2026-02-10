@@ -87,6 +87,14 @@
                 <span class="material-symbols-outlined">stop_circle</span>
                 Finalizar Turno
               </button>
+              <button
+                @click="abrirModalMesas"
+                class="px-6 py-3 rounded-xl font-bold text-white transition-all flex items-center gap-2"
+                style="background-color: #3b82f6;"
+              >
+                <span class="material-symbols-outlined">chair</span>
+                Mesas ({{ totalMesas }})
+              </button>
             </div>
           </header>
 
@@ -180,7 +188,6 @@
       <!-- SALÓN Tab -->
       <div v-if="tabActiva === 'salon'" class="p-8">
         <div class="max-w-7xl mx-auto">
-          <h2 class="text-3xl font-extrabold tracking-tight mb-6">Salón</h2>
           <CamareroView :key="tabActiva" />
         </div>
       </div>
@@ -209,6 +216,48 @@
         </div>
       </div>
     </main>
+
+    <!-- Modal Configurar Mesas -->
+    <div v-if="mostrarModalMesas" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+      <div class="bg-[#1f1f1f] w-full max-w-md rounded-2xl p-8 border border-white/10">
+        <h3 class="text-2xl font-bold mb-6 flex items-center gap-3">
+          <span class="material-symbols-outlined text-[#3b82f6]">chair</span>
+          Configurar Mesas
+        </h3>
+        <p class="text-sm text-gray-400 mb-6">¿Cuántas mesas hay disponibles hoy en la sala?</p>
+
+        <div class="flex items-center justify-center gap-6 mb-8">
+          <button
+            @click="mesasEditando > 1 && mesasEditando--"
+            class="w-16 h-16 rounded-full bg-[#0a0a0a] hover:bg-white/10 flex items-center justify-center text-3xl font-bold transition-all"
+          >
+            -
+          </button>
+          <span class="text-5xl font-black text-[#3b82f6] w-24 text-center">{{ mesasEditando }}</span>
+          <button
+            @click="mesasEditando++"
+            class="w-16 h-16 rounded-full bg-[#0a0a0a] hover:bg-white/10 flex items-center justify-center text-3xl font-bold transition-all"
+          >
+            +
+          </button>
+        </div>
+
+        <div class="flex gap-3">
+          <button
+            @click="cerrarModalMesas"
+            class="flex-1 py-3 rounded-xl bg-[#0a0a0a] border border-white/10 font-bold hover:bg-white/5 transition-colors"
+          >
+            Cancelar
+          </button>
+          <button
+            @click="guardarMesas"
+            class="flex-1 py-3 rounded-xl bg-[#3b82f6] text-white font-bold hover:bg-[#3b82f6]/90 transition-colors"
+          >
+            Guardar
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -240,9 +289,11 @@ const horaTurno = ref(null)
 const ventasTotales = ref(0)
 const pedidosActivos = ref(0)
 const mesasOcupadas = ref(0)
-const totalMesas = ref(20)
+const totalMesas = ref(13)
 const pedidosRecientes = ref([])
 const cargando = ref(false)
+const mostrarModalMesas = ref(false)
+const mesasEditando = ref(13)
 let subscription = null
 
 // Iniciales del nombre
@@ -336,6 +387,12 @@ function suscribirseACambios() {
 
 // Cargar hora de turno al montar
 onMounted(() => {
+  // Cargar número de mesas guardado
+  const mesasGuardadas = sessionStorage.getItem('totalMesas')
+  if (mesasGuardadas) {
+    totalMesas.value = parseInt(mesasGuardadas)
+  }
+
   const horaGuardada = sessionStorage.getItem('horaTurno')
   if (horaGuardada) {
     horaTurno.value = new Date(horaGuardada)
@@ -348,6 +405,24 @@ onMounted(() => {
 onUnmounted(() => {
   if (subscription) subscription.unsubscribe()
 })
+
+// Configurar número de mesas
+function abrirModalMesas() {
+  mesasEditando.value = totalMesas.value
+  mostrarModalMesas.value = true
+}
+
+function cerrarModalMesas() {
+  mostrarModalMesas.value = false
+}
+
+function guardarMesas() {
+  if (mesasEditando.value > 0) {
+    totalMesas.value = mesasEditando.value
+    sessionStorage.setItem('totalMesas', mesasEditando.value)
+    mostrarModalMesas.value = false
+  }
+}
 
 // Cerrar sesion
 function cerrarSesion() {

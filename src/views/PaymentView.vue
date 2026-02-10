@@ -279,9 +279,7 @@ onMounted(() => {
       </div>
       <div class="flex items-center gap-6">
         <nav class="hidden md:flex items-center gap-8">
-          <router-link to="/camarero" class="text-sm font-medium hover:text-[#ff7b00] transition-colors">Mesas</router-link>
           <span class="text-sm font-medium text-[#ff7b00] border-b-2 border-[#ff7b00] pb-1">Cobrar</span>
-          <router-link to="/admin/productos" class="text-sm font-medium hover:text-[#ff7b00] transition-colors">Productos</router-link>
         </nav>
       </div>
     </header>
