@@ -181,7 +181,7 @@
       <div v-if="tabActiva === 'salon'" class="p-8">
         <div class="max-w-7xl mx-auto">
           <h2 class="text-3xl font-extrabold tracking-tight mb-6">Salón</h2>
-          <CamareroView />
+          <CamareroView :key="tabActiva" />
         </div>
       </div>
 

@@ -67,9 +67,9 @@ const subtotal = computed(() => {
   return itemsCuenta.value.reduce((acc, item) => acc + (item.precio * item.cantidad), 0)
 })
 
-// IVA (10%)
+// IVA (0% - Sin IVA)
 const iva = computed(() => {
-  return subtotal.value * 0.10
+  return 0
 })
 
 // Calcular descuento aplicado
@@ -346,10 +346,6 @@ onMounted(() => {
             <div class="flex justify-between text-sm text-slate-400">
               <span>Subtotal</span>
               <span>{{ subtotal.toFixed(2) }}€</span>
-            </div>
-            <div class="flex justify-between text-sm text-slate-400">
-              <span>IVA (10%)</span>
-              <span>{{ iva.toFixed(2) }}€</span>
             </div>
             <div v-if="descuentoAplicado > 0" class="flex justify-between text-sm text-green-500">
               <span>Descuento</span>

@@ -229,7 +229,15 @@ const guardarProductosCamarero = async () => {
     sessionStorage.removeItem('camarero_pedido_id')
     sessionStorage.removeItem('camarero_modo')
 
-    router.push('/camarero')
+    // Redirigir según el rol del usuario
+    const userData = JSON.parse(sessionStorage.getItem('adminUser') || '{}')
+    const rol = userData.rol || 'camarero'
+    const rutaPorRol = {
+      'camarero': '/camarero',
+      'gerente': '/admin/dashboard',
+      'admin': '/admin/dashboard'
+    }
+    router.push(rutaPorRol[rol] || '/camarero')
   } catch (error) {
     console.error('Error guardando productos:', error)
   } finally {
@@ -243,7 +251,16 @@ const cancelarModoCamarero = () => {
   sessionStorage.removeItem('camarero_mesa')
   sessionStorage.removeItem('camarero_pedido_id')
   sessionStorage.removeItem('camarero_modo')
-  router.push('/camarero')
+
+  // Redirigir según el rol del usuario
+  const userData = JSON.parse(sessionStorage.getItem('adminUser') || '{}')
+  const rol = userData.rol || 'camarero'
+  const rutaPorRol = {
+    'camarero': '/camarero',
+    'gerente': '/admin/dashboard',
+    'admin': '/admin/dashboard'
+  }
+  router.push(rutaPorRol[rol] || '/camarero')
 }
 
 // Seleccionar grupo
