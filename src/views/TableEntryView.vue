@@ -22,7 +22,8 @@ const restaurantSlug = ref('la-toscana')
 onMounted(() => {
   // Obtener parámetros del QR
   const slug = route.params.restaurantSlug || 'la-toscana'
-  const table = route.query.table || route.params.tableNumber || '12'
+  // Buscar 'mesa' primero (del código QR), luego 'table', luego usar default
+  const table = route.query.mesa || route.query.table || route.params.tableNumber || '12'
 
   restaurantSlug.value = slug
   restaurantName.value = slug.replace(/-/g, ' ').toUpperCase()

@@ -215,6 +215,13 @@
           <GestionView />
         </div>
       </div>
+
+      <!-- QR Tab -->
+      <div v-if="tabActiva === 'qr'" class="p-8">
+        <div class="max-w-7xl mx-auto">
+          <QRGeneratorView />
+        </div>
+      </div>
     </main>
 
     <!-- Modal Configurar Mesas -->
@@ -270,6 +277,7 @@ import CamareroView from '../views/CamareroView.vue'
 import AdminProductosView from '../views/AdminProductosView.vue'
 import CocinaView from '../views/CocinaView.vue'
 import GestionView from '../views/GestionView.vue'
+import QRGeneratorView from '../views/QRGeneratorView.vue'
 
 const router = useRouter()
 const adminStore = useAdminStore()
@@ -281,6 +289,7 @@ const tabs = [
   { id: 'productos', label: 'PRODUCTOS', icon: 'restaurant_menu' },
   { id: 'cocina', label: 'COCINA', icon: 'soup_kitchen' },
   { id: 'gestion', label: 'GESTIÓN', icon: 'admin_panel_settings' },
+  { id: 'qr', label: 'QR', icon: 'qr_code' },
   { id: 'panel', label: 'PANEL', icon: 'dashboard_customize' }
 ]
 
