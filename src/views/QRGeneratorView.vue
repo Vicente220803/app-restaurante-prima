@@ -9,6 +9,8 @@ const totalMesas = ref(13)
 const generando = ref(null)
 const mensajeExito = ref(null)
 const cargando = ref(true)
+const modalConfirmacion = ref(false)
+const mesaABorrar = ref(null)
 
 // Configuración base de mesas (igual que en CamareroView)
 const configuracionMesas = [
@@ -180,6 +182,48 @@ const descargarTodosQR = async () => {
     }
   }
 }
+
+// Abrir modal para confirmar borrado
+const abrirModalBorrar = (mesaId, nombreMesa) => {
+  mesaABorrar.value = { id: mesaId, nombre: nombreMesa }
+  modalConfirmacion.value = true
+}
+
+// Cerrar modal
+const cerrarModal = () => {
+  modalConfirmacion.value = false
+  mesaABorrar.value = null
+}
+
+// Borrar QR de Supabase
+const confirmarBorrarQR = async () => {
+  if (!mesaABorrar.value) return
+
+  try {
+    const { error } = await supabase
+      .from('qr_mesas')
+      .delete()
+      .eq('numero_mesa', mesaABorrar.value.id)
+
+    if (error) throw error
+
+    // Actualizar estado de la mesa
+    const mesa = mesas.value.find(m => m.id === mesaABorrar.value.id)
+    if (mesa) {
+      mesa.qrGenerado = false
+      mesa.qrDataUrl = null
+    }
+
+    mensajeExito.value = `QR de ${mesaABorrar.value.nombre} eliminado`
+    setTimeout(() => { mensajeExito.value = null }, 2000)
+
+    cerrarModal()
+  } catch (error) {
+    console.error('Error borrando QR:', error)
+    mensajeExito.value = 'Error al eliminar el QR'
+    cerrarModal()
+  }
+}
 </script>
 
 <template>
@@ -250,23 +294,33 @@ const descargarTodosQR = async () => {
         </div>
 
         <!-- Botones -->
-        <div class="flex gap-2 w-full">
-          <button
-            @click="generarQRMesa(mesa.id, mesa.nombre)"
-            :disabled="generando === mesa.id"
-            class="flex-1 px-4 py-2 bg-[#e27246] hover:bg-[#c25f38] disabled:bg-gray-400 text-white font-bold rounded-lg transition-colors text-sm flex items-center justify-center gap-1"
-          >
-            <span v-if="generando === mesa.id" class="material-symbols-outlined animate-spin">progress_activity</span>
-            <span v-else class="material-symbols-outlined">qr_code</span>
-            {{ generando === mesa.id ? 'Generando...' : 'Generar' }}
-          </button>
+        <div class="flex gap-2 w-full flex-col">
+          <div class="flex gap-2 w-full">
+            <button
+              @click="generarQRMesa(mesa.id, mesa.nombre)"
+              :disabled="generando === mesa.id"
+              class="flex-1 px-4 py-2 bg-[#e27246] hover:bg-[#c25f38] disabled:bg-gray-400 text-white font-bold rounded-lg transition-colors text-sm flex items-center justify-center gap-1"
+            >
+              <span v-if="generando === mesa.id" class="material-symbols-outlined animate-spin">progress_activity</span>
+              <span v-else class="material-symbols-outlined">qr_code</span>
+              {{ generando === mesa.id ? 'Generando...' : 'Generar' }}
+            </button>
+            <button
+              v-if="mesa.qrGenerado"
+              @click="descargarQR(mesa.id, mesa.nombre)"
+              class="flex-1 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-lg transition-colors text-sm flex items-center justify-center gap-1"
+            >
+              <span class="material-symbols-outlined">download</span>
+              Descargar
+            </button>
+          </div>
           <button
             v-if="mesa.qrGenerado"
-            @click="descargarQR(mesa.id, mesa.nombre)"
-            class="flex-1 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-lg transition-colors text-sm flex items-center justify-center gap-1"
+            @click="abrirModalBorrar(mesa.id, mesa.nombre)"
+            class="w-full px-4 py-2 bg-red-500 hover:bg-red-600 text-white font-bold rounded-lg transition-colors text-sm flex items-center justify-center gap-1"
           >
-            <span class="material-symbols-outlined">download</span>
-            Descargar
+            <span class="material-symbols-outlined">delete</span>
+            Limpiar QR
           </button>
         </div>
       </div>
@@ -284,6 +338,37 @@ const descargarTodosQR = async () => {
         </ul>
       </div>
     </template>
+
+    <!-- Modal de confirmación para borrar QR -->
+    <div v-if="modalConfirmacion" class="fixed inset-0 bg-black/80 flex items-center justify-center z-[100] p-4">
+      <div class="bg-white dark:bg-[#1a1d23] rounded-2xl w-full max-w-sm overflow-hidden">
+        <div class="p-6 border-b border-gray-200 dark:border-gray-700">
+          <h3 class="text-xl font-bold">Confirmar eliminación</h3>
+        </div>
+        <div class="p-6 space-y-4">
+          <p class="text-gray-700 dark:text-gray-300">
+            ¿Seguro que quieres borrar el QR de <strong>{{ mesaABorrar?.nombre }}</strong>?
+          </p>
+          <p class="text-sm text-gray-500 dark:text-gray-400">
+            Esta acción no se puede deshacer.
+          </p>
+        </div>
+        <div class="p-6 border-t border-gray-200 dark:border-gray-700 flex gap-3">
+          <button
+            @click="cerrarModal"
+            class="flex-1 px-4 py-2 bg-gray-300 hover:bg-gray-400 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-900 dark:text-white font-bold rounded-lg transition-colors"
+          >
+            Cancelar
+          </button>
+          <button
+            @click="confirmarBorrarQR"
+            class="flex-1 px-4 py-2 bg-red-500 hover:bg-red-600 text-white font-bold rounded-lg transition-colors"
+          >
+            Borrar QR
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
