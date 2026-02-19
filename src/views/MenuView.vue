@@ -699,11 +699,10 @@ const getCategoryIcon = (nombre) => {
 
           <!-- Total acumulado -->
           <div class="bg-gradient-to-r from-[#da540b]/10 to-[#da540b]/5 dark:from-[#da540b]/20 dark:to-[#da540b]/10 rounded-lg p-4 border border-[#da540b]/20">
-            <div class="flex justify-between items-center mb-2">
+            <div class="flex justify-between items-center">
               <span class="font-bold text-slate-900 dark:text-white">Total Acumulado</span>
               <span class="text-xl font-extrabold text-[#da540b]">{{ ordersStore.totalAccumulated.toFixed(2) }}€</span>
             </div>
-            <p class="text-[11px] text-slate-500 dark:text-[#a68070]">El camarero cobrará cuando termines de pedir</p>
           </div>
         </div>
       </aside>

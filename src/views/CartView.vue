@@ -304,11 +304,10 @@ const confirmarPedido = async () => {
 
               <!-- Total acumulado -->
               <div class="bg-gradient-to-r from-[#e27246]/10 to-[#e27246]/5 dark:from-[#e27246]/20 dark:to-[#e27246]/10 rounded-xl p-4 border border-[#e27246]/20">
-                <div class="flex justify-between items-center mb-2">
+                <div class="flex justify-between items-center">
                   <span class="font-bold text-gray-900 dark:text-white">Total Acumulado</span>
                   <span class="text-2xl font-black text-[#e27246]">{{ ordersStore.totalAccumulated.toFixed(2) }}€</span>
                 </div>
-                <p class="text-[11px] text-gray-500 dark:text-gray-400">El camarero cobrará cuando termines de pedir</p>
               </div>
             </div>
           </div>
