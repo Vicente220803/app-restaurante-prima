@@ -69,8 +69,8 @@
                 <span class="text-sm font-semibold">{{ fechaHoy }}</span>
               </div>
               <button
-                v-if="!horaTurno"
-                @click="comenzarTurno"
+                v-if="!horaTurno && !turnoFinalizado"
+                @click="mostrarModalConfirmacionInicio = true"
                 :disabled="cargando"
                 class="px-6 py-3 rounded-xl font-bold text-white transition-all flex items-center gap-2"
                 style="background-color: #f97316;"
@@ -79,13 +79,22 @@
                 Comenzar Turno
               </button>
               <button
-                v-else
-                @click="() => { horaTurno = null; sessionStorage.removeItem('horaTurno') }"
+                v-else-if="horaTurno && !turnoFinalizado"
+                @click="mostrarModalConfirmacionFinal = true"
                 class="px-6 py-3 rounded-xl font-bold text-white transition-all flex items-center gap-2"
                 style="background-color: #ef4444;"
               >
                 <span class="material-symbols-outlined">stop_circle</span>
                 Finalizar Turno
+              </button>
+              <button
+                v-else
+                disabled
+                class="px-6 py-3 rounded-xl font-bold text-white transition-all flex items-center gap-2 opacity-50 cursor-not-allowed"
+                style="background-color: #6b7280;"
+              >
+                <span class="material-symbols-outlined">lock</span>
+                Turno Finalizado
               </button>
               <button
                 @click="abrirModalMesas"
@@ -265,6 +274,88 @@
         </div>
       </div>
     </div>
+
+    <!-- Modal Confirmación Inicio de Turno -->
+    <div v-if="mostrarModalConfirmacionInicio" class="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+      <div class="bg-[#0f1115] rounded-2xl border border-[#2d2d2d] max-w-md w-full shadow-2xl overflow-hidden">
+        <!-- Header -->
+        <div class="bg-gradient-to-r from-[#f97316] to-[#d97706] px-6 py-6 text-center">
+          <div class="flex justify-center mb-3">
+            <span class="material-symbols-outlined text-5xl text-white">schedule</span>
+          </div>
+          <h2 class="text-2xl font-extrabold text-white tracking-tight">Iniciar Turno</h2>
+        </div>
+
+        <!-- Content -->
+        <div class="px-6 py-8 text-center space-y-6">
+          <div>
+            <p class="text-white text-lg font-semibold mb-2">¿Vas a empezar turno?</p>
+            <p class="text-gray-400 text-sm leading-relaxed">
+              Se limpiarán todas las mesas y comenzaremos a contar desde cero
+            </p>
+          </div>
+
+          <!-- Buttons -->
+          <div class="flex gap-3">
+            <button
+              @click="cancelarComienzoDeTurno"
+              class="flex-1 px-4 py-3 bg-[#1f1f1f] hover:bg-[#2d2d2d] text-white font-bold rounded-lg transition-colors"
+            >
+              Cancelar
+            </button>
+            <button
+              @click="confirmarComienzoDeTurno"
+              :disabled="cargando"
+              class="flex-1 px-4 py-3 bg-[#f97316] hover:bg-[#d97706] text-white font-bold rounded-lg transition-colors disabled:opacity-50"
+            >
+              <span v-if="cargando" class="material-symbols-outlined animate-spin mr-1">progress_activity</span>
+              <span v-else>Confirmar</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Confirmación Finalización de Turno -->
+    <div v-if="mostrarModalConfirmacionFinal" class="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+      <div class="bg-[#0f1115] rounded-2xl border border-[#2d2d2d] max-w-md w-full shadow-2xl overflow-hidden">
+        <!-- Header -->
+        <div class="bg-gradient-to-r from-[#ef4444] to-[#dc2626] px-6 py-6 text-center">
+          <div class="flex justify-center mb-3">
+            <span class="material-symbols-outlined text-5xl text-white">stop_circle</span>
+          </div>
+          <h2 class="text-2xl font-extrabold text-white tracking-tight">Finalizar Turno</h2>
+        </div>
+
+        <!-- Content -->
+        <div class="px-6 py-8 text-center space-y-6">
+          <div>
+            <p class="text-white text-lg font-semibold mb-2">¿Estás seguro?</p>
+            <p class="text-gray-400 text-sm leading-relaxed">
+              Se cerrará el turno y no se podrán contabilizar más mesas hasta iniciar un nuevo turno
+            </p>
+          </div>
+
+          <!-- Buttons -->
+          <div class="flex gap-3">
+            <button
+              @click="cancelarFinalizacionDeTurno"
+              class="flex-1 px-4 py-3 bg-[#1f1f1f] hover:bg-[#2d2d2d] text-white font-bold rounded-lg transition-colors"
+            >
+              No, Continuar
+            </button>
+            <button
+              @click="confirmarFinalizacionDeTurno"
+              :disabled="cargando"
+              class="flex-1 px-4 py-3 bg-[#ef4444] hover:bg-[#dc2626] text-white font-bold rounded-lg transition-colors disabled:opacity-50"
+            >
+              <span v-if="cargando" class="material-symbols-outlined animate-spin mr-1">progress_activity</span>
+              <span v-else>Sí, Finalizar</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -303,6 +394,9 @@ const pedidosRecientes = ref([])
 const cargando = ref(false)
 const mostrarModalMesas = ref(false)
 const mesasEditando = ref(13)
+const mostrarModalConfirmacionInicio = ref(false)
+const mostrarModalConfirmacionFinal = ref(false)
+const turnoFinalizado = ref(false)
 let subscription = null
 
 // Iniciales del nombre
@@ -359,19 +453,66 @@ async function cargarMetricas() {
   }
 }
 
-// Comenzar turno
-async function comenzarTurno() {
-  horaTurno.value = new Date()
-  ventasTotales.value = 0
-  pedidosActivos.value = 0
-  mesasOcupadas.value = 0
-  pedidosRecientes.value = []
+// Confirmar y comenzar turno
+async function confirmarComienzoDeTurno() {
+  mostrarModalConfirmacionInicio.value = false
+  turnoFinalizado.value = false
+  cargando.value = true
 
-  // Guardar hora en sessionStorage para persistencia
-  sessionStorage.setItem('horaTurno', horaTurno.value.toISOString())
+  try {
+    // Limpiar todas las mesas (eliminar pedidos pendientes de la BD)
+    await supabase
+      .from('pedidos')
+      .delete()
+      .eq('estado', 'pendiente')
 
-  await cargarMetricas()
-  suscribirseACambios()
+    horaTurno.value = new Date()
+    ventasTotales.value = 0
+    pedidosActivos.value = 0
+    mesasOcupadas.value = 0
+    pedidosRecientes.value = []
+
+    // Guardar hora en sessionStorage para persistencia
+    sessionStorage.setItem('horaTurno', horaTurno.value.toISOString())
+    sessionStorage.removeItem('turnoFinalizado')
+
+    await cargarMetricas()
+    suscribirseACambios()
+  } catch (error) {
+    console.error('Error al comenzar turno:', error)
+  } finally {
+    cargando.value = false
+  }
+}
+
+// Cancelar inicio de turno
+function cancelarComienzoDeTurno() {
+  mostrarModalConfirmacionInicio.value = false
+}
+
+// Confirmar y finalizar turno
+async function confirmarFinalizacionDeTurno() {
+  mostrarModalConfirmacionFinal.value = false
+  cargando.value = true
+
+  try {
+    horaTurno.value = null
+    turnoFinalizado.value = true
+    sessionStorage.removeItem('horaTurno')
+    sessionStorage.setItem('turnoFinalizado', 'true')
+
+    // No permitir nuevas operaciones hasta que inicie un nuevo turno
+    if (subscription) subscription.unsubscribe()
+  } catch (error) {
+    console.error('Error al finalizar turno:', error)
+  } finally {
+    cargando.value = false
+  }
+}
+
+// Cancelar finalización de turno
+function cancelarFinalizacionDeTurno() {
+  mostrarModalConfirmacionFinal.value = false
 }
 
 // Suscribirse a cambios en tiempo real
@@ -402,11 +543,18 @@ onMounted(() => {
     totalMesas.value = parseInt(mesasGuardadas)
   }
 
-  const horaGuardada = sessionStorage.getItem('horaTurno')
-  if (horaGuardada) {
-    horaTurno.value = new Date(horaGuardada)
-    cargarMetricas()
-    suscribirseACambios()
+  // Cargar estado del turno finalizado
+  const turnoFinalizadoGuardado = sessionStorage.getItem('turnoFinalizado')
+  if (turnoFinalizadoGuardado === 'true') {
+    turnoFinalizado.value = true
+    horaTurno.value = null
+  } else {
+    const horaGuardada = sessionStorage.getItem('horaTurno')
+    if (horaGuardada) {
+      horaTurno.value = new Date(horaGuardada)
+      cargarMetricas()
+      suscribirseACambios()
+    }
   }
 })
 
