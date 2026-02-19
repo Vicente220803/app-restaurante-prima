@@ -239,9 +239,24 @@ const procesarPago = async () => {
 // Finalizar y volver a mesas
 const finalizarYVolver = async () => {
   try {
-    // Marcar todos los pedidos como pagados
+    // Calcular el descuento prorrateado por pedido
+    const descuentoPorPedido = {}
+
+    if (descuentoAplicado.value > 0) {
+      // Prorratear descuento según el total de cada pedido
+      pedidos.value.forEach(pedido => {
+        const proporcion = pedido.total / subtotal.value
+        descuentoPorPedido[pedido.id] = descuentoAplicado.value * proporcion
+      })
+    }
+
+    // Marcar todos los pedidos como pagados y actualizar total con descuento aplicado
     for (const pedido of pedidos.value) {
-      await supabase.from('pedidos').update({ estado: 'pagado' }).eq('id', pedido.id)
+      const totalConDescuento = Math.max(0, pedido.total - (descuentoPorPedido[pedido.id] || 0))
+      await supabase.from('pedidos').update({
+        estado: 'pagado',
+        total: totalConDescuento
+      }).eq('id', pedido.id)
     }
 
     // Redirigir según el rol
