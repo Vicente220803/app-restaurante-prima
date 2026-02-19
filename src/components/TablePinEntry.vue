@@ -118,6 +118,43 @@
     <!-- Decorative Floating Elements -->
     <div class="absolute -bottom-20 -right-20 size-64 blur-[100px] rounded-full pointer-events-none" style="background-color: rgba(230, 80, 0, 0.2);"></div>
     <div class="absolute -top-20 -left-20 size-64 blur-[100px] rounded-full pointer-events-none" style="background-color: rgba(230, 80, 0, 0.1);"></div>
+
+    <!-- Modal de Ayuda (Después de 3 intentos fallidos) -->
+    <div v-if="mostrarModalAyuda" class="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+      <div class="bg-[#23160f] rounded-2xl border border-[#e65000]/30 max-w-md w-full shadow-2xl overflow-hidden animate-pulse">
+        <!-- Header -->
+        <div class="bg-gradient-to-r from-[#e65000] to-[#d94a00] px-6 py-6 text-center">
+          <div class="flex justify-center mb-3">
+            <span class="material-symbols-outlined text-5xl text-white">help</span>
+          </div>
+          <h2 class="text-2xl font-extrabold text-white tracking-tight">¿Necesitas Ayuda?</h2>
+        </div>
+
+        <!-- Content -->
+        <div class="px-6 py-8 text-center space-y-6">
+          <div>
+            <p class="text-white/90 text-lg font-semibold mb-2">PIN Incorrecto</p>
+            <p class="text-white/70 text-sm leading-relaxed">
+              Has ingresado el PIN incorrecto varias veces
+            </p>
+          </div>
+
+          <div class="bg-[#e65000]/10 border border-[#e65000]/30 rounded-xl p-4">
+            <p class="text-[#e65000] font-bold text-lg tracking-wide">PIDE EL PIN A TU CAMARERO</p>
+            <p class="text-white/60 text-sm mt-2">El camarero tiene el código del día</p>
+          </div>
+
+          <!-- Action Button -->
+          <button
+            @click="mostrarModalAyuda = false; intentosFallidos = 0"
+            class="w-full px-6 py-3 bg-[#e65000] hover:bg-[#d94a00] text-white font-bold rounded-lg transition-all duration-200 flex items-center justify-center gap-2"
+          >
+            <span class="material-symbols-outlined">check</span>
+            Entendido, Intentar de Nuevo
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -149,6 +186,8 @@ const pinDigits = ref(['', '', '', ''])
 const loading = ref(false)
 const error = ref('')
 const restaurante = ref(null)
+const intentosFallidos = ref(0)
+const mostrarModalAyuda = ref(false)
 
 // Cargar datos del restaurante al montar
 onMounted(async () => {
@@ -276,7 +315,15 @@ const submitPin = async () => {
     // PIN incorrecto
     throw new Error('PIN incorrecto')
   } catch (err) {
-    error.value = 'PIN incorrecto. Pide el PIN a tu camarero.'
+    intentosFallidos.value++
+
+    if (intentosFallidos.value >= 3) {
+      mostrarModalAyuda.value = true
+      error.value = ''
+    } else {
+      error.value = 'PIN incorrecto. Pide el PIN a tu camarero.'
+    }
+
     pinDigits.value = ['', '', '', '']
   } finally {
     loading.value = false
