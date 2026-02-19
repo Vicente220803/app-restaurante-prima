@@ -1,12 +1,15 @@
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useCartStore } from '../store/cart'
+import { useOrdersStore } from '../store/orders'
 import { supabase } from '../supabase'
+import OrderSummary from '../components/OrderSummary.vue'
 
 const router = useRouter()
 const route = useRoute()
 const cartStore = useCartStore()
+const ordersStore = useOrdersStore()
 
 const restaurantSlug = route.params.restaurantSlug || 'la-toscana'
 const tableNumber = route.query.table || '1'
@@ -14,6 +17,11 @@ const enviandoPedido = ref(false)
 
 // Calcular total (sin IVA separado)
 const total = computed(() => cartStore.totalCart)
+
+// Inicializar órdenes al cargar
+onMounted(async () => {
+  await ordersStore.initializeFromSupabase(tableNumber)
+})
 
 const goBack = () => {
   router.push(`/${restaurantSlug}/menu?table=${tableNumber}`)
@@ -61,6 +69,12 @@ const confirmarPedido = async () => {
       })
 
     if (error) throw error
+
+    // Agregar los items al store de órdenes acumuladas
+    ordersStore.addConfirmedOrder(cartStore.items, cartStore.totalCart)
+
+    // Limpiar el carrito
+    cartStore.clearCart()
 
     // Mostrar confirmación (sin limpiar ni redirigir automáticamente)
     pedidoConfirmado.value = true
@@ -280,6 +294,9 @@ const confirmarPedido = async () => {
           </div>
         </div>
       </div>
+
+      <!-- Order Summary (Resumen de pedidos acumulados) -->
+      <OrderSummary />
     </div>
   </div>
 </template>

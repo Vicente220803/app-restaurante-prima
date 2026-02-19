@@ -3,11 +3,14 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { supabase } from '../supabase'
 import { useCartStore } from '../store/cart'
+import { useOrdersStore } from '../store/orders'
 import ProductModal from '../components/ProductModal.vue'
+import OrderSummary from '../components/OrderSummary.vue'
 
 const route = useRoute()
 const router = useRouter()
 const cartStore = useCartStore()
+const ordersStore = useOrdersStore()
 
 const productos = ref([])
 const categorias = ref([])
@@ -174,6 +177,11 @@ onMounted(async () => {
     console.error('Error cargando datos:', error)
   } finally {
     loading.value = false
+
+    // Inicializar el store de órdenes acumuladas (para cliente, no camarero)
+    if (!modoCamarero.value && tableNumber) {
+      await ordersStore.initializeFromSupabase(tableNumber)
+    }
   }
 })
 
@@ -690,6 +698,9 @@ const getCategoryIcon = (nombre) => {
       :product="selectedProduct"
       @close="isModalOpen = false"
     />
+
+    <!-- Order Summary (Resumen de pedidos acumulados) -->
+    <OrderSummary v-if="!modoCamarero" />
 
     <!-- Image Lightbox -->
     <Teleport to="body">
