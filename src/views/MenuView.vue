@@ -5,7 +5,6 @@ import { supabase } from '../supabase'
 import { useCartStore } from '../store/cart'
 import { useOrdersStore } from '../store/orders'
 import ProductModal from '../components/ProductModal.vue'
-import OrderSummary from '../components/OrderSummary.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -675,6 +674,38 @@ const getCategoryIcon = (nombre) => {
             Seguir comprando
           </button>
         </div>
+
+        <!-- Resumen de Pedidos Anteriores (Acumulados) -->
+        <div v-if="ordersStore.hasOrders" class="border-t border-slate-200 dark:border-[#493022] p-6 space-y-4">
+          <h4 class="font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <span class="material-symbols-outlined text-[#da540b] text-lg">receipt_long</span>
+            📋 Tu Resumen
+          </h4>
+
+          <!-- Lista de items acumulados -->
+          <div class="space-y-3 max-h-48 overflow-y-auto">
+            <div
+              v-for="item in ordersStore.itemsWithQuantities"
+              :key="`${item.id}-summary`"
+              class="flex items-start justify-between gap-3 pb-3 border-b border-slate-100 dark:border-[#493022]"
+            >
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-semibold text-slate-900 dark:text-white truncate">{{ item.nombre }}</p>
+                <p class="text-xs text-slate-500 dark:text-[#a68070]">{{ item.cantidad }}x {{ (item.precioTotal).toFixed(2) }}€</p>
+              </div>
+              <span class="font-bold text-slate-900 dark:text-white whitespace-nowrap">{{ (item.precioTotal * item.cantidad).toFixed(2) }}€</span>
+            </div>
+          </div>
+
+          <!-- Total acumulado -->
+          <div class="bg-gradient-to-r from-[#da540b]/10 to-[#da540b]/5 dark:from-[#da540b]/20 dark:to-[#da540b]/10 rounded-lg p-4 border border-[#da540b]/20">
+            <div class="flex justify-between items-center mb-2">
+              <span class="font-bold text-slate-900 dark:text-white">Total Acumulado</span>
+              <span class="text-xl font-extrabold text-[#da540b]">{{ ordersStore.totalAccumulated.toFixed(2) }}€</span>
+            </div>
+            <p class="text-[11px] text-slate-500 dark:text-[#a68070]">El camarero cobrará cuando termines de pedir</p>
+          </div>
+        </div>
       </aside>
 
       <!-- Botón flotante para abrir panel en mobile (cuando no está abierto) -->
@@ -698,9 +729,6 @@ const getCategoryIcon = (nombre) => {
       :product="selectedProduct"
       @close="isModalOpen = false"
     />
-
-    <!-- Order Summary (Resumen de pedidos acumulados) -->
-    <OrderSummary v-if="!modoCamarero" />
 
     <!-- Image Lightbox -->
     <Teleport to="body">

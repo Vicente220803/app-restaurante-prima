@@ -4,7 +4,6 @@ import { useRouter, useRoute } from 'vue-router'
 import { useCartStore } from '../store/cart'
 import { useOrdersStore } from '../store/orders'
 import { supabase } from '../supabase'
-import OrderSummary from '../components/OrderSummary.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -280,6 +279,38 @@ const confirmarPedido = async () => {
               <span class="material-symbols-outlined text-xs align-middle mr-1">lock</span>
               Pago seguro en mesa
             </p>
+
+            <!-- Resumen de Pedidos Anteriores (Acumulados) -->
+            <div v-if="ordersStore.hasOrders" class="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+              <h4 class="font-bold text-base mb-4 flex items-center gap-2 text-gray-900 dark:text-white">
+                <span class="material-symbols-outlined text-[#e27246] text-lg">receipt_long</span>
+                📋 Tu Resumen de Pedidos
+              </h4>
+
+              <!-- Lista de items acumulados -->
+              <div class="space-y-3 mb-4 max-h-64 overflow-y-auto">
+                <div
+                  v-for="item in ordersStore.itemsWithQuantities"
+                  :key="`${item.id}-summary`"
+                  class="flex items-start justify-between gap-3 pb-3 border-b border-gray-100 dark:border-gray-700"
+                >
+                  <div class="flex-1 min-w-0">
+                    <p class="text-sm font-semibold text-gray-900 dark:text-white truncate">{{ item.nombre }}</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">{{ item.cantidad }}x {{ (item.precioTotal).toFixed(2) }}€</p>
+                  </div>
+                  <span class="font-bold text-gray-900 dark:text-white whitespace-nowrap">{{ (item.precioTotal * item.cantidad).toFixed(2) }}€</span>
+                </div>
+              </div>
+
+              <!-- Total acumulado -->
+              <div class="bg-gradient-to-r from-[#e27246]/10 to-[#e27246]/5 dark:from-[#e27246]/20 dark:to-[#e27246]/10 rounded-xl p-4 border border-[#e27246]/20">
+                <div class="flex justify-between items-center mb-2">
+                  <span class="font-bold text-gray-900 dark:text-white">Total Acumulado</span>
+                  <span class="text-2xl font-black text-[#e27246]">{{ ordersStore.totalAccumulated.toFixed(2) }}€</span>
+                </div>
+                <p class="text-[11px] text-gray-500 dark:text-gray-400">El camarero cobrará cuando termines de pedir</p>
+              </div>
+            </div>
           </div>
 
           <!-- Assistance Card -->
@@ -294,9 +325,6 @@ const confirmarPedido = async () => {
           </div>
         </div>
       </div>
-
-      <!-- Order Summary (Resumen de pedidos acumulados) -->
-      <OrderSummary />
     </div>
   </div>
 </template>
