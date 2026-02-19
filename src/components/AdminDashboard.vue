@@ -69,7 +69,7 @@
                 <span class="text-sm font-semibold">{{ fechaHoy }}</span>
               </div>
               <button
-                v-if="!horaTurno && !turnoFinalizado"
+                v-if="!horaTurno"
                 @click="mostrarModalConfirmacionInicio = true"
                 :disabled="cargando"
                 class="px-6 py-3 rounded-xl font-bold text-white transition-all flex items-center gap-2"
@@ -79,22 +79,13 @@
                 Comenzar Turno
               </button>
               <button
-                v-else-if="horaTurno && !turnoFinalizado"
+                v-else
                 @click="mostrarModalConfirmacionFinal = true"
                 class="px-6 py-3 rounded-xl font-bold text-white transition-all flex items-center gap-2"
                 style="background-color: #ef4444;"
               >
                 <span class="material-symbols-outlined">stop_circle</span>
                 Finalizar Turno
-              </button>
-              <button
-                v-else
-                disabled
-                class="px-6 py-3 rounded-xl font-bold text-white transition-all flex items-center gap-2 opacity-50 cursor-not-allowed"
-                style="background-color: #6b7280;"
-              >
-                <span class="material-symbols-outlined">lock</span>
-                Turno Finalizado
               </button>
               <button
                 @click="abrirModalMesas"
