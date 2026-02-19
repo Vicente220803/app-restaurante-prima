@@ -26,7 +26,8 @@
         <div class="mb-2">
           <span class="text-[#e65000] font-bold text-sm uppercase tracking-[0.3em]">Bienvenido</span>
         </div>
-        <h1 class="text-white text-5xl font-extrabold tracking-tight mb-4">Mesa {{ tableNumber }}</h1>
+        <h1 class="text-white text-5xl font-extrabold tracking-tight mb-4" v-if="tableNumber">Mesa {{ tableNumber }}</h1>
+        <h1 class="text-white text-4xl font-extrabold tracking-tight mb-4" v-else>{{ restaurantName }}</h1>
 
         <!-- Instruction Text -->
         <p class="text-white/70 text-base font-medium leading-relaxed text-center max-w-[280px] mb-10">
@@ -265,7 +266,10 @@ const submitPin = async () => {
       // PIN del día -> Menú para clientes
       sessionStorage.setItem('userRole', 'cliente')
       sessionStorage.setItem('clientAuth', 'true')
-      router.push(`/${props.restaurantSlug}/menu?table=${props.tableNumber}`)
+      const menuUrl = props.tableNumber
+        ? `/${props.restaurantSlug}/menu?table=${props.tableNumber}`
+        : `/${props.restaurantSlug}/menu`
+      router.push(menuUrl)
       return
     }
 
