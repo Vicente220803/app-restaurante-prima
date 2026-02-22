@@ -8,6 +8,7 @@ export const useAdminStore = defineStore('admin', {
 
   getters: {
     nombre: (state) => state.user?.nombre || 'Usuario',
+    email: (state) => state.user?.email || 'gerente@latoscana.es',
     rol: (state) => state.user?.rol || '',
     restauranteId: (state) => state.user?.restaurante_id || null,
     isAdmin: (state) => state.user?.rol === 'admin',

@@ -155,6 +155,7 @@
                     <th class="px-6 py-4 font-semibold">Mesa</th>
                     <th class="px-6 py-4 font-semibold">Estado</th>
                     <th class="px-6 py-4 font-semibold">Total</th>
+                    <th class="px-6 py-4 font-semibold">Ticket</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -165,14 +166,39 @@
                       <span
                         class="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wide"
                         :style="{
-                          backgroundColor: pedido.estado === 'pendiente' ? 'rgba(249, 115, 22, 0.1)' : 'rgba(34, 197, 94, 0.1)',
-                          color: pedido.estado === 'pendiente' ? '#f97316' : '#22c55e'
+                          backgroundColor:
+                            pedido.estado === 'pendiente' ? 'rgba(249, 115, 22, 0.1)' :
+                            pedido.estado === 'preparando' ? 'rgba(249, 115, 22, 0.1)' :
+                            pedido.estado === 'listo' ? 'rgba(34, 197, 94, 0.1)' :
+                            'rgba(34, 197, 94, 0.1)',
+                          color:
+                            pedido.estado === 'pendiente' ? '#f97316' :
+                            pedido.estado === 'preparando' ? '#f97316' :
+                            pedido.estado === 'listo' ? '#22c55e' :
+                            '#22c55e'
                         }"
                       >
-                        {{ pedido.estado === 'pendiente' ? 'Preparando' : 'Pagado' }}
+                        {{
+                          pedido.estado === 'pendiente' ? 'Preparando' :
+                          pedido.estado === 'preparando' ? 'Preparando' :
+                          pedido.estado === 'listo' ? 'Listo' :
+                          'Pagado'
+                        }}
                       </span>
                     </td>
                     <td class="px-6 py-4 font-bold">{{ pedido.total.toFixed(2) }}€</td>
+                    <td class="px-6 py-4">
+                      <button
+                        @click="abrirModalTicket(pedido)"
+                        class="px-3 py-1.5 rounded-lg text-sm font-semibold transition-all"
+                        style="background-color: rgba(249, 115, 22, 0.2); color: #f97316;"
+                        @mouseenter="$event.target.style.backgroundColor = 'rgba(249, 115, 22, 0.3)'"
+                        @mouseleave="$event.target.style.backgroundColor = 'rgba(249, 115, 22, 0.2)'"
+                      >
+                        <span class="material-symbols-outlined text-sm mr-1" style="vertical-align: -2px;">receipt_long</span>
+                        Ver Ticket
+                      </button>
+                    </td>
                   </tr>
                 </tbody>
               </table>
@@ -347,14 +373,143 @@
         </div>
       </div>
     </div>
+
+    <!-- Modal Ticket Detallado -->
+    <div v-if="mostrarModalTicket && pedidoSeleccionado" class="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+      <div class="bg-[#0f1115] rounded-2xl border border-[#2d2d2d] max-w-lg w-full shadow-2xl overflow-hidden">
+        <!-- Header -->
+        <div class="bg-gradient-to-r from-[#f97316] to-[#d97706] px-6 py-6">
+          <div class="flex justify-between items-start">
+            <div>
+              <h2 class="text-2xl font-extrabold text-white tracking-tight">Ticket de Pedido</h2>
+              <p class="text-white/80 text-sm mt-1">Mesa {{ pedidoSeleccionado.mesa }}</p>
+            </div>
+            <button
+              @click="cerrarModalTicket"
+              class="p-2 hover:bg-white/10 rounded-lg transition-colors"
+            >
+              <span class="material-symbols-outlined text-white">close</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Content -->
+        <div class="p-6 max-h-[70vh] overflow-y-auto">
+          <!-- Información del pedido -->
+          <div class="mb-6 pb-6 border-b border-[#2d2d2d]">
+            <div class="grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <p class="text-gray-400">ID Pedido</p>
+                <p class="text-white font-semibold">{{ pedidoSeleccionado.id.substring(0, 12) }}</p>
+              </div>
+              <div>
+                <p class="text-gray-400">Estado</p>
+                <p class="text-white font-semibold capitalize">{{ pedidoSeleccionado.estado }}</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Detalle de items -->
+          <div class="mb-6">
+            <h3 class="text-lg font-bold text-white mb-4">Artículos Pedidos</h3>
+            <div v-if="pedidoSeleccionado.items && pedidoSeleccionado.items.length > 0" class="space-y-3">
+              <div
+                v-for="(item, index) in pedidoSeleccionado.items"
+                :key="index"
+                class="flex justify-between items-start p-3 rounded-lg bg-[#1f1f1f] border border-[#2d2d2d]"
+              >
+                <div class="flex-1">
+                  <div class="flex items-center gap-2">
+                    <span class="text-sm font-semibold text-[#f97316]">{{ item.cantidad }}x</span>
+                    <p class="text-white font-semibold">{{ item.nombre }}</p>
+                  </div>
+                  <p v-if="item.opciones" class="text-xs text-gray-400 mt-1 ml-6">+ {{ item.opciones }}</p>
+                </div>
+                <p class="text-white font-bold ml-4">{{ (item.precio * item.cantidad).toFixed(2) }}€</p>
+              </div>
+            </div>
+            <div v-else class="p-4 text-center text-gray-400">
+              <p>No hay artículos en este pedido</p>
+            </div>
+          </div>
+
+          <!-- Resumen de totales -->
+          <div class="p-4 rounded-lg bg-[#1f1f1f] border border-[#2d2d2d]">
+            <div class="flex justify-between items-center">
+              <span class="text-white font-bold">Total</span>
+              <span class="text-2xl font-extrabold text-[#f97316]">{{ pedidoSeleccionado.total.toFixed(2) }}€</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="p-6 border-t border-[#2d2d2d] flex gap-3">
+          <button
+            @click="cerrarModalTicket"
+            class="flex-1 px-4 py-3 bg-[#1f1f1f] hover:bg-[#2d2d2d] text-white font-bold rounded-lg transition-colors"
+          >
+            Cerrar
+          </button>
+          <button
+            class="flex-1 px-4 py-3 bg-[#f97316] hover:bg-[#d97706] text-white font-bold rounded-lg transition-colors flex items-center justify-center gap-2"
+          >
+            <span class="material-symbols-outlined text-lg">print</span>
+            Imprimir Ticket
+          </button>
+        </div>
+      </div>
+
+      <!-- Modal Resultado Envío Email -->
+      <div v-if="mostrarResultadoEmail" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+        <div class="bg-[#0f1115] rounded-2xl border border-[#2d2d2d] max-w-md w-full shadow-2xl overflow-hidden">
+          <!-- Header -->
+          <div :class="[
+            'px-6 py-6 text-center',
+            resultadoEmail.success
+              ? 'bg-gradient-to-r from-[#22c55e] to-[#16a34a]'
+              : 'bg-gradient-to-r from-[#ef4444] to-[#dc2626]'
+          ]">
+            <div class="flex justify-center mb-3">
+              <span class="material-symbols-outlined text-5xl text-white">
+                {{ resultadoEmail.success ? 'mark_email_read' : 'error' }}
+              </span>
+            </div>
+            <h2 class="text-2xl font-extrabold text-white tracking-tight">
+              {{ resultadoEmail.success ? 'Correo Enviado' : 'Error al Enviar' }}
+            </h2>
+          </div>
+
+          <!-- Content -->
+          <div class="px-6 py-8 text-center space-y-4">
+            <p class="text-white text-lg font-semibold">
+              {{ resultadoEmail.message }}
+            </p>
+            <p v-if="resultadoEmail.success" class="text-gray-400 text-sm">
+              El resumen de ventas del turno ha sido enviado a tu correo electrónico.
+            </p>
+          </div>
+
+          <!-- Footer -->
+          <div class="p-6 border-t border-[#2d2d2d]">
+            <button
+              @click="mostrarResultadoEmail = false"
+              class="w-full px-4 py-3 bg-[#f97316] hover:bg-[#d97706] text-white font-bold rounded-lg transition-colors"
+            >
+              Entendido
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { useAdminStore } from '../store/admin'
 import { supabase } from '../supabase'
+import { initializeEmailJS, enviarResumenVentas } from '../services/emailService'
 import CamareroView from '../views/CamareroView.vue'
 import AdminProductosView from '../views/AdminProductosView.vue'
 import CocinaView from '../views/CocinaView.vue'
@@ -362,6 +517,7 @@ import GestionView from '../views/GestionView.vue'
 import QRGeneratorView from '../views/QRGeneratorView.vue'
 
 const router = useRouter()
+const route = useRoute()
 const adminStore = useAdminStore()
 
 const tabActiva = ref('panel')
@@ -388,6 +544,10 @@ const mesasEditando = ref(13)
 const mostrarModalConfirmacionInicio = ref(false)
 const mostrarModalConfirmacionFinal = ref(false)
 const turnoFinalizado = ref(false)
+const mostrarModalTicket = ref(false)
+const pedidoSeleccionado = ref(null)
+const mostrarResultadoEmail = ref(false)
+const resultadoEmail = ref({ success: false, message: '' })
 let subscription = null
 
 // Iniciales del nombre
@@ -415,23 +575,23 @@ async function cargarMetricas() {
     // Consultar pedidos del turno actual
     const { data: pedidos } = await supabase
       .from('pedidos')
-      .select('id, mesa, total, estado, created_at')
+      .select('id, mesa, total, estado, created_at, items')
       .gte('created_at', new Date(horaTurno.value).toISOString())
       .order('created_at', { ascending: false })
 
     if (pedidos) {
-      // Pedidos activos (pendientes)
-      pedidosActivos.value = pedidos.filter(p => p.estado === 'pendiente').length
+      // Pedidos activos (pendientes, preparando o listos)
+      pedidosActivos.value = pedidos.filter(p => ['pendiente', 'preparando', 'listo'].includes(p.estado)).length
 
-      // Ventas totales (pagados)
+      // Ventas totales (solo pagados)
       ventasTotales.value = pedidos
         .filter(p => p.estado === 'pagado')
         .reduce((sum, p) => sum + (p.total || 0), 0)
 
-      // Mesas ocupadas (únicas con pedidos pendientes)
+      // Mesas ocupadas (únicas con pedidos pendientes, preparando o listos)
       const mesasUnicas = new Set(
         pedidos
-          .filter(p => p.estado === 'pendiente')
+          .filter(p => ['pendiente', 'preparando', 'listo'].includes(p.estado))
           .map(p => p.mesa)
       )
       mesasOcupadas.value = mesasUnicas.size
@@ -487,6 +647,56 @@ async function confirmarFinalizacionDeTurno() {
   cargando.value = true
 
   try {
+    const horaFin = new Date()
+    const horaInicio = horaTurno.value ? new Date(horaTurno.value) : new Date()
+
+    // Obtener datos del turno para el correo
+    const nombreGerente = adminStore.nombre || 'Gerente'
+    const email = adminStore.email || 'gerente@latoscana.es'
+
+    // Formatear fechas y horas
+    const fechaTurno = horaInicio.toLocaleDateString('es-ES', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    })
+    const horaInicioStr = horaInicio.toLocaleTimeString('es-ES', {
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+    const horaFinStr = horaFin.toLocaleTimeString('es-ES', {
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+
+    // Contar número de pedidos pagados
+    const { data: pedidosPagados } = await supabase
+      .from('pedidos')
+      .select('id, mesa')
+      .eq('estado', 'pagado')
+      .gte('created_at', horaInicio.toISOString())
+
+    const numPedidos = pedidosPagados?.length || 0
+    const numMesasUnicas = new Set(pedidosPagados?.map(p => p.mesa) || []).size
+
+    // Enviar correo con resumen de ventas
+    const resultadoEnvio = await enviarResumenVentas({
+      email,
+      nombreGerente,
+      ventasTotales: ventasTotales.value.toFixed(2),
+      fechaTurno,
+      horaInicio: horaInicioStr,
+      horaFin: horaFinStr,
+      numPedidos,
+      numMesas: numMesasUnicas
+    })
+
+    // Guardar resultado para mostrar al usuario
+    resultadoEmail.value = resultadoEnvio
+    mostrarResultadoEmail.value = true
+
+    // Finalizar turno
     horaTurno.value = null
     turnoFinalizado.value = true
     sessionStorage.removeItem('horaTurno')
@@ -496,6 +706,11 @@ async function confirmarFinalizacionDeTurno() {
     if (subscription) subscription.unsubscribe()
   } catch (error) {
     console.error('Error al finalizar turno:', error)
+    resultadoEmail.value = {
+      success: false,
+      message: 'Error al finalizar el turno'
+    }
+    mostrarResultadoEmail.value = true
   } finally {
     cargando.value = false
   }
@@ -528,6 +743,15 @@ function suscribirseACambios() {
 
 // Cargar hora de turno al montar
 onMounted(() => {
+  // Inicializar EmailJS
+  initializeEmailJS()
+
+  // Cargar tab activa desde URL si existe
+  const tabParam = route.query.tab
+  if (tabParam && tabs.some(t => t.id === tabParam)) {
+    tabActiva.value = tabParam
+  }
+
   // Cargar número de mesas guardado
   const mesasGuardadas = sessionStorage.getItem('totalMesas')
   if (mesasGuardadas) {
@@ -570,6 +794,18 @@ function guardarMesas() {
     sessionStorage.setItem('totalMesas', mesasEditando.value)
     mostrarModalMesas.value = false
   }
+}
+
+// Abrir modal del ticket
+function abrirModalTicket(pedido) {
+  pedidoSeleccionado.value = pedido
+  mostrarModalTicket.value = true
+}
+
+// Cerrar modal del ticket
+function cerrarModalTicket() {
+  mostrarModalTicket.value = false
+  pedidoSeleccionado.value = null
 }
 
 // Cerrar sesion

@@ -156,13 +156,15 @@ watch(pin, async (newPin) => {
           user_id: data.user_id,
           nombre: data.nombre,
           rol: data.rol,
+          email: data.email || 'gerente@latoscana.es',
           restaurante_id: data.restaurante_id
         })
         sessionStorage.setItem('adminAuth', 'true')
         sessionStorage.setItem('adminUser', JSON.stringify({
           id: data.id,
           nombre: data.nombre,
-          rol: data.rol
+          rol: data.rol,
+          email: data.email || 'gerente@latoscana.es'
         }))
 
         // Redirigir según el rol

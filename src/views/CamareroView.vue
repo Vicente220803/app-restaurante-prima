@@ -317,9 +317,19 @@ const userRole = computed(() => {
   return null
 })
 
-onMounted(() => {
-  cargarPedidos()
+onMounted(async () => {
+  await cargarPedidos()
   iniciarSuscripcion()
+
+  // Si hay una mesa guardada en sessionStorage, pre-seleccionarla
+  const mesaGuardada = sessionStorage.getItem('mesa_seleccionada')
+  if (mesaGuardada) {
+    const mesa = mesasLimitadas.value.find(m => m.id === mesaGuardada)
+    if (mesa) {
+      seleccionarMesa(mesa)
+    }
+    sessionStorage.removeItem('mesa_seleccionada')
+  }
 })
 
 onUnmounted(() => {

@@ -235,19 +235,21 @@ const guardarProductosCamarero = async () => {
 
     // Limpiar y volver a la vista del camarero
     cartStore.clearCart()
-    sessionStorage.removeItem('camarero_mesa')
     sessionStorage.removeItem('camarero_pedido_id')
     sessionStorage.removeItem('camarero_modo')
 
     // Redirigir según el rol del usuario
     const userData = JSON.parse(sessionStorage.getItem('adminUser') || '{}')
     const rol = userData.rol || 'camarero'
-    const rutaPorRol = {
-      'camarero': '/camarero',
-      'gerente': '/admin/dashboard',
-      'admin': '/admin/dashboard'
+
+    if (rol === 'camarero') {
+      sessionStorage.removeItem('camarero_mesa')
+      router.push('/camarero')
+    } else {
+      // Para gerente y admin: guardar la mesa para que se pre-seleccione y volver al dashboard
+      sessionStorage.setItem('mesa_seleccionada', camareroMesa.value)
+      router.push('/admin/dashboard?tab=salon')
     }
-    router.push(rutaPorRol[rol] || '/camarero')
   } catch (error) {
     console.error('Error guardando productos:', error)
   } finally {
