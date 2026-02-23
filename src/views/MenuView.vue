@@ -346,24 +346,24 @@ const getCategoryIcon = (nombre) => {
     <div class="relative flex min-h-screen w-full max-w-[1200px] flex-col overflow-x-hidden">
 
       <!-- Header Section -->
-      <header class="flex items-center justify-between whitespace-nowrap border-b border-slate-200 dark:border-[#493022] px-6 md:px-10 py-4 sticky top-0 bg-[#f8f6f5]/80 dark:bg-[#221610]/80 backdrop-blur-md z-50">
-        <div class="flex items-center gap-4">
+      <header class="flex items-center justify-between whitespace-nowrap border-b border-slate-200 dark:border-[#493022] px-3 sm:px-6 md:px-10 py-3 sm:py-4 sticky top-0 bg-[#f8f6f5]/80 dark:bg-[#221610]/80 backdrop-blur-md z-50">
+        <div class="flex items-center gap-2 sm:gap-4">
           <!-- Botón volver cuando hay grupo activo -->
           <button
             v-if="grupoActivo"
             @click="volverAtras"
-            class="p-2 -ml-2 rounded-lg hover:bg-slate-100 dark:hover:bg-[#493022] transition-colors"
+            class="p-1 sm:p-2 -ml-1 sm:-ml-2 rounded-lg hover:bg-slate-100 dark:hover:bg-[#493022] transition-colors"
           >
-            <span class="material-symbols-outlined text-slate-600 dark:text-[#cba590]">arrow_back</span>
+            <span class="material-symbols-outlined text-slate-600 dark:text-[#cba590] text-lg sm:text-2xl">arrow_back</span>
           </button>
           <!-- Logo -->
-          <div v-else class="text-[#da540b]">
-            <svg fill="none" height="32" viewBox="0 0 48 48" width="32" xmlns="http://www.w3.org/2000/svg">
+          <div v-else class="text-[#da540b] hidden sm:block">
+            <svg fill="none" height="28" viewBox="0 0 48 48" width="28" xmlns="http://www.w3.org/2000/svg">
               <path d="M39.5563 34.1455V13.8546C39.5563 15.708 36.8773 17.3437 32.7927 18.3189C30.2914 18.916 27.263 19.2655 24 19.2655C20.737 19.2655 17.7086 18.916 15.2073 18.3189C11.1227 17.3437 8.44365 15.708 8.44365 13.8546V34.1455C8.44365 35.9988 11.1227 37.6346 15.2073 38.6098C17.7086 39.2069 20.737 39.5564 24 39.5564C27.263 39.5564 30.2914 39.2069 32.7927 38.6098C36.8773 37.6346 39.5563 35.9988 39.5563 34.1455Z" fill="currentColor"/>
               <path clip-rule="evenodd" d="M10.4485 13.8519C10.4749 13.9271 10.6203 14.246 11.379 14.7361C12.298 15.3298 13.7492 15.9145 15.6717 16.3735C18.0007 16.9296 20.8712 17.2655 24 17.2655C27.1288 17.2655 29.9993 16.9296 32.3283 16.3735C34.2508 15.9145 35.702 15.3298 36.621 14.7361C37.3796 14.246 37.5251 13.9271 37.5515 13.8519C37.5287 13.7876 37.4333 13.5973 37.0635 13.2931C36.5266 12.8516 35.6288 12.3647 34.343 11.9175C31.79 11.0295 28.1333 10.4437 24 10.4437C19.8667 10.4437 16.2099 11.0295 13.657 11.9175C12.3712 12.3647 11.4734 12.8516 10.9365 13.2931C10.5667 13.5973 10.4713 13.7876 10.4485 13.8519ZM37.5563 18.7877C36.3176 19.3925 34.8502 19.8839 33.2571 20.2642C30.5836 20.9025 27.3973 21.2655 24 21.2655C20.6027 21.2655 17.4164 20.9025 14.7429 20.2642C13.1498 19.8839 11.6824 19.3925 10.4436 18.7877V34.1275C10.4515 34.1545 10.5427 34.4867 11.379 35.027C12.298 35.6207 13.7492 36.2054 15.6717 36.6644C18.0007 37.2205 20.8712 37.5564 24 37.5564C27.1288 37.5564 29.9993 37.2205 32.3283 36.6644C34.2508 36.2054 35.702 35.6207 36.621 35.027C37.4573 34.4867 37.5485 34.1546 37.5563 34.1275V18.7877ZM41.5563 13.8546V34.1455C41.5563 36.1078 40.158 37.5042 38.7915 38.3869C37.3498 39.3182 35.4192 40.0389 33.2571 40.5551C30.5836 41.1934 27.3973 41.5564 24 41.5564C20.6027 41.5564 17.4164 41.1934 14.7429 40.5551C12.5808 40.0389 10.6502 39.3182 9.20848 38.3869C7.84205 37.5042 6.44365 36.1078 6.44365 34.1455L6.44365 13.8546C6.44365 12.2684 7.37223 11.0454 8.39581 10.2036C9.43325 9.3505 10.8137 8.67141 12.343 8.13948C15.4203 7.06909 19.5418 6.44366 24 6.44366C28.4582 6.44366 32.5797 7.06909 35.657 8.13948C37.1863 8.67141 38.5667 9.3505 39.6042 10.2036C40.6278 11.0454 41.5563 12.2684 41.5563 13.8546Z" fill="currentColor" fill-rule="evenodd"/>
             </svg>
           </div>
-          <h2 class="text-slate-900 dark:text-white text-xl font-extrabold leading-tight tracking-tight">
+          <h2 class="text-slate-900 dark:text-white text-sm sm:text-lg md:text-xl font-extrabold leading-tight tracking-tight truncate">
             {{ grupoActivo ? tituloSeccion : (restaurante.nombre || 'La Toscana') }}
           </h2>
         </div>
@@ -414,21 +414,22 @@ const getCategoryIcon = (nombre) => {
               <span class="text-xs text-slate-500 dark:text-[#cba590] font-medium">Ubicación</span>
               <span class="text-sm font-bold text-[#da540b]">Mesa {{ tableNumber }}</span>
             </div>
-            <button class="flex cursor-pointer items-center justify-center rounded-xl h-10 px-3 bg-[#da540b] text-white text-sm font-bold shadow-lg shadow-[#da540b]/20 hover:bg-[#da540b]/90 transition-all">
-              <span>Mesa {{ tableNumber }}</span>
+            <button class="flex cursor-pointer items-center justify-center rounded-lg sm:rounded-xl h-8 sm:h-10 px-2 sm:px-3 bg-[#da540b] text-white text-xs sm:text-sm font-bold shadow-lg shadow-[#da540b]/20 hover:bg-[#da540b]/90 transition-all">
+              <span class="hidden sm:inline">Mesa {{ tableNumber }}</span>
+              <span class="sm:hidden">M{{ tableNumber }}</span>
             </button>
             <!-- Cart button with Ver Pedido -->
             <button
               @click="$router.push(`/${restaurantSlug}/cart?table=${tableNumber}`)"
-              class="flex items-center gap-2 bg-slate-100 dark:bg-[#493022] px-3 py-2 rounded-xl hover:bg-slate-200 dark:hover:bg-[#5a3a2a] transition-colors"
+              class="flex items-center gap-1 sm:gap-2 bg-slate-100 dark:bg-[#493022] px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg sm:rounded-xl hover:bg-slate-200 dark:hover:bg-[#5a3a2a] transition-colors"
             >
-              <span class="material-symbols-outlined text-slate-600 dark:text-[#cba590]">shopping_cart</span>
-              <span v-if="cartStore.countItems > 0" class="text-sm font-bold text-slate-700 dark:text-white">
+              <span class="material-symbols-outlined text-slate-600 dark:text-[#cba590] text-lg">shopping_cart</span>
+              <span v-if="cartStore.countItems > 0" class="hidden sm:inline text-sm font-bold text-slate-700 dark:text-white">
                 Ver Pedido
               </span>
               <span
                 v-if="cartStore.countItems > 0"
-                class="bg-[#da540b] text-white text-xs min-w-[20px] h-5 px-1 rounded-full flex items-center justify-center font-bold"
+                class="bg-[#da540b] text-white text-xs min-w-[18px] h-4 sm:h-5 px-1 rounded-full flex items-center justify-center font-bold text-[10px] sm:text-xs"
               >
                 {{ cartStore.countItems }}
               </span>
@@ -449,15 +450,15 @@ const getCategoryIcon = (nombre) => {
         <!-- ========== VISTA PRINCIPAL: Grupos ========== -->
         <template v-if="!grupoActivo">
           <!-- Hero Section -->
-          <div class="px-6 md:px-10 pt-10 pb-24">
-            <h1 class="text-slate-900 dark:text-white tracking-tight text-3xl md:text-4xl font-extrabold leading-tight">
+          <div class="px-3 md:px-10 pt-6 md:pt-10 pb-16 md:pb-24">
+            <h1 class="text-slate-900 dark:text-white tracking-tight text-xl sm:text-2xl md:text-4xl font-extrabold leading-tight">
               ¡Hola! Bienvenido a {{ restaurante.nombre || 'La Toscana' }}
             </h1>
           </div>
 
           <!-- Category Grid -->
-          <main class="flex-1 px-6 md:px-10 pb-10">
-            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+          <main class="flex-1 px-3 md:px-10 pb-10">
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4 md:gap-6">
               <div
                 v-for="(grupo, index) in gruposMenu"
                 :key="grupo.id"
@@ -486,11 +487,11 @@ const getCategoryIcon = (nombre) => {
                 ]"></div>
                 <!-- Icon -->
                 <span :class="[
-                  'material-symbols-outlined mb-1',
+                  'material-symbols-outlined mb-1 text-lg sm:text-2xl',
                   grupo.especial ? 'text-emerald-400' : 'text-[#da540b]'
                 ]">{{ grupo.icon }}</span>
                 <!-- Name -->
-                <p class="text-white text-xl font-bold leading-tight">{{ grupo.nombre }}</p>
+                <p class="text-white text-sm sm:text-lg md:text-xl font-bold leading-tight">{{ grupo.nombre }}</p>
               </div>
             </div>
           </main>
@@ -499,22 +500,23 @@ const getCategoryIcon = (nombre) => {
         <!-- ========== VISTA DE GRUPO: Subcategorías y Productos ========== -->
         <template v-else-if="grupoActivo">
           <!-- Subcategories Bar -->
-          <div v-if="subcategoriasDelGrupo.length > 0" class="px-6 md:px-10 mb-4">
-            <div class="flex gap-3 overflow-x-auto no-scrollbar pb-2">
+          <div v-if="subcategoriasDelGrupo.length > 0" class="px-3 md:px-10 mb-3 md:mb-4">
+            <div class="flex gap-2 sm:gap-3 overflow-x-auto no-scrollbar pb-2">
               <button
                 v-for="subcat in subcategoriasDelGrupo"
                 :key="subcat.id"
                 @click="selectSubcategoria(subcat.id)"
                 :class="[
-                  'flex items-center gap-2 px-4 py-2.5 rounded-xl shrink-0 transition-all text-sm font-medium',
+                  'flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl shrink-0 transition-all text-xs sm:text-sm font-medium',
                   subcategoriaActiva === subcat.id
                     ? 'bg-[#da540b] text-white shadow-lg shadow-[#da540b]/20'
                     : 'bg-white dark:bg-[#2d1e16] text-slate-700 dark:text-[#cba590] hover:bg-slate-100 dark:hover:bg-[#493022]'
                 ]"
               >
-                <span class="material-symbols-outlined text-sm">{{ getCategoryIcon(subcat.nombre) }}</span>
-                <span>{{ subcat.nombre }}</span>
-                <span class="text-xs opacity-60 bg-black/10 dark:bg-white/10 px-1.5 py-0.5 rounded-full">
+                <span class="material-symbols-outlined text-xs sm:text-sm hidden sm:inline">{{ getCategoryIcon(subcat.nombre) }}</span>
+                <span class="hidden sm:inline">{{ subcat.nombre }}</span>
+                <span class="sm:hidden">{{ subcat.nombre.split(' ')[0] }}</span>
+                <span class="text-xs opacity-60 bg-black/10 dark:bg-white/10 px-1 py-0.5 rounded-full hidden sm:inline">
                   {{ productos.filter(p => p.categoria_id === subcat.id).length }}
                 </span>
               </button>
@@ -522,7 +524,7 @@ const getCategoryIcon = (nombre) => {
           </div>
 
           <!-- Products Grid -->
-          <main class="flex-1 px-6 md:px-10 pb-10">
+          <main class="flex-1 px-3 md:px-10 pb-10">
             <!-- Empty State -->
             <div v-if="productosFiltrados.length === 0" class="text-center py-16">
               <span class="material-symbols-outlined text-6xl text-slate-300 dark:text-[#493022]">restaurant</span>
@@ -530,14 +532,14 @@ const getCategoryIcon = (nombre) => {
             </div>
 
             <!-- Products -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4 md:gap-6">
               <div
                 v-for="producto in productosFiltrados"
                 :key="producto.id"
                 class="group bg-white dark:bg-[#2d1e16] rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-slate-100 dark:border-[#493022]"
               >
                 <!-- Product Image -->
-                <div class="relative h-48 w-full cursor-pointer" @click="openImage(producto.imagen_url)">
+                <div class="relative h-32 sm:h-40 md:h-48 w-full cursor-pointer" @click="openImage(producto.imagen_url)">
                   <div
                     class="absolute inset-0 bg-center bg-no-repeat bg-cover transition-transform duration-500 group-hover:scale-110 bg-slate-100 dark:bg-[#493022]"
                     :style="producto.imagen_url ? `background-image: url('${producto.imagen_url}')` : ''"
@@ -554,10 +556,10 @@ const getCategoryIcon = (nombre) => {
                 </div>
 
                 <!-- Product Info -->
-                <div class="p-5">
+                <div class="p-3 sm:p-4 md:p-5">
                   <div class="flex justify-between items-start mb-2">
                     <h3
-                      class="text-lg font-bold leading-tight cursor-pointer hover:text-[#da540b] transition-colors text-slate-900 dark:text-white"
+                      class="text-sm sm:text-base md:text-lg font-bold leading-tight cursor-pointer hover:text-[#da540b] transition-colors text-slate-900 dark:text-white"
                       @click="openProduct(producto)"
                     >{{ producto.nombre }}</h3>
                     <button
@@ -567,18 +569,19 @@ const getCategoryIcon = (nombre) => {
                       <span class="material-symbols-outlined">info</span>
                     </button>
                   </div>
-                  <p class="text-slate-500 dark:text-[#cba590] text-sm leading-relaxed mb-4 line-clamp-2">
+                  <p class="text-slate-500 dark:text-[#cba590] text-xs sm:text-sm leading-relaxed mb-3 sm:mb-4 line-clamp-2">
                     {{ producto.descripcion || 'Delicioso plato de nuestra cocina' }}
                   </p>
-                  <div class="flex items-center justify-between">
-                    <span class="text-emerald-600 dark:text-emerald-400 font-extrabold text-lg">{{ producto.precio_base?.toFixed(2) }}€</span>
+                  <div class="flex items-center justify-between gap-2">
+                    <span class="text-emerald-600 dark:text-emerald-400 font-extrabold text-sm sm:text-lg">{{ producto.precio_base?.toFixed(2) }}€</span>
                     <button
                       @click="openProduct(producto)"
                       :disabled="!producto.disponible"
-                      class="bg-[#da540b] hover:bg-[#da540b]/90 text-white font-bold text-sm px-4 py-2 rounded-xl transition-transform active:scale-95 flex items-center gap-2 disabled:bg-slate-300 disabled:cursor-not-allowed shadow-lg shadow-[#da540b]/20"
+                      class="bg-[#da540b] hover:bg-[#da540b]/90 text-white font-bold text-xs sm:text-sm px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl transition-transform active:scale-95 flex items-center gap-1 sm:gap-2 disabled:bg-slate-300 disabled:cursor-not-allowed shadow-lg shadow-[#da540b]/20"
                     >
-                      <span class="material-symbols-outlined text-sm">add</span>
-                      Añadir
+                      <span class="material-symbols-outlined text-sm hidden sm:block">add</span>
+                      <span class="hidden sm:inline">Añadir</span>
+                      <span class="sm:hidden">+</span>
                     </button>
                   </div>
                 </div>
@@ -594,10 +597,11 @@ const getCategoryIcon = (nombre) => {
         !mostrarPanelPedido && 'md:translate-x-0 translate-x-full md:w-80'
       ]">
         <!-- Header del panel -->
-        <div class="border-b border-slate-200 dark:border-[#493022] px-6 py-4 flex items-center justify-between">
-          <h3 class="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+        <div class="border-b border-slate-200 dark:border-[#493022] px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
+          <h3 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
             <span class="material-symbols-outlined text-[#da540b]">shopping_cart</span>
-            Mi Pedido
+            <span class="hidden sm:inline">Mi Pedido</span>
+            <span class="sm:hidden">Pedido</span>
           </h3>
           <button
             @click="mostrarPanelPedido = false"
@@ -608,31 +612,31 @@ const getCategoryIcon = (nombre) => {
         </div>
 
         <!-- Contenido del carrito -->
-        <div v-if="cartStore.countItems === 0" class="flex-1 flex flex-col items-center justify-center p-6 text-center">
-          <span class="material-symbols-outlined text-5xl text-slate-300 dark:text-[#493022] mb-4">shopping_cart</span>
-          <p class="text-slate-500 dark:text-[#cba590] font-medium">Tu carrito está vacío</p>
-          <p class="text-sm text-slate-400 dark:text-[#a68070] mt-2">Selecciona productos para empezar</p>
+        <div v-if="cartStore.countItems === 0" class="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 text-center">
+          <span class="material-symbols-outlined text-4 sm:text-5xl text-slate-300 dark:text-[#493022] mb-3 sm:mb-4">shopping_cart</span>
+          <p class="text-sm sm:text-base text-slate-500 dark:text-[#cba590] font-medium">Tu carrito está vacío</p>
+          <p class="text-xs sm:text-sm text-slate-400 dark:text-[#a68070] mt-2">Selecciona productos para empezar</p>
         </div>
 
         <div v-else class="flex-1 overflow-y-auto">
           <!-- Lista de items -->
-          <div class="p-6 space-y-4">
+          <div class="p-3 sm:p-6 space-y-3 sm:space-y-4">
             <div
               v-for="(item, index) in cartStore.items"
               :key="index"
-              class="bg-white dark:bg-[#3a2618] rounded-lg p-4 border border-slate-200 dark:border-[#493022]"
+              class="bg-white dark:bg-[#3a2618] rounded-lg p-3 sm:p-4 border border-slate-200 dark:border-[#493022]"
             >
-              <div class="flex items-start justify-between gap-3 mb-2">
-                <div class="flex-1">
-                  <h4 class="font-bold text-slate-900 dark:text-white">{{ item.nombre }}</h4>
-                  <p v-if="item.opcionesResumen && item.opcionesResumen.length > 0" class="text-xs text-slate-500 dark:text-[#a68070] mt-1">
+              <div class="flex items-start justify-between gap-2 sm:gap-3 mb-1 sm:mb-2">
+                <div class="flex-1 min-w-0">
+                  <h4 class="font-bold text-slate-900 dark:text-white text-sm sm:text-base truncate">{{ item.nombre }}</h4>
+                  <p v-if="item.opcionesResumen && item.opcionesResumen.length > 0" class="text-xs text-slate-500 dark:text-[#a68070] mt-1 line-clamp-1">
                     {{ item.opcionesResumen.map(o => o.nombre).join(', ') }}
                   </p>
                 </div>
-                <span class="text-[#da540b] font-bold">x{{ item.cantidad }}</span>
+                <span class="text-[#da540b] font-bold text-sm sm:text-base whitespace-nowrap">x{{ item.cantidad }}</span>
               </div>
-              <div class="flex items-center justify-between text-sm">
-                <span class="text-slate-500 dark:text-[#a68070]">{{ (item.precioTotal / item.cantidad).toFixed(2) }}€ c/u</span>
+              <div class="flex items-center justify-between text-xs sm:text-sm">
+                <span class="text-slate-500 dark:text-[#a68070]">{{ (item.precioTotal / item.cantidad).toFixed(2) }}€</span>
                 <span class="font-bold text-slate-900 dark:text-white">{{ item.precioTotal.toFixed(2) }}€</span>
               </div>
             </div>
@@ -640,16 +644,16 @@ const getCategoryIcon = (nombre) => {
         </div>
 
         <!-- Totales y botones -->
-        <div v-if="cartStore.countItems > 0" class="border-t border-slate-200 dark:border-[#493022] p-6 space-y-4">
+        <div v-if="cartStore.countItems > 0" class="border-t border-slate-200 dark:border-[#493022] p-4 sm:p-6 space-y-3 sm:space-y-4">
           <!-- Resumen de totales -->
-          <div class="space-y-2 pb-4 border-b border-slate-200 dark:border-[#493022]">
-            <div class="flex justify-between text-sm text-slate-600 dark:text-[#a68070]">
+          <div class="space-y-1 sm:space-y-2 pb-3 sm:pb-4 border-b border-slate-200 dark:border-[#493022]">
+            <div class="flex justify-between text-xs sm:text-sm text-slate-600 dark:text-[#a68070]">
               <span>Subtotal</span>
               <span>{{ cartStore.totalCart.toFixed(2) }}€</span>
             </div>
             <div class="flex justify-between items-end">
-              <span class="font-bold text-slate-900 dark:text-white">Total</span>
-              <span class="text-2xl font-extrabold text-[#da540b]">{{ cartStore.totalCart.toFixed(2) }}€</span>
+              <span class="font-bold text-slate-900 dark:text-white text-sm sm:text-base">Total</span>
+              <span class="text-xl sm:text-2xl font-extrabold text-[#da540b]">{{ cartStore.totalCart.toFixed(2) }}€</span>
             </div>
           </div>
 
@@ -664,46 +668,48 @@ const getCategoryIcon = (nombre) => {
           <button
             v-if="!modoCamarero"
             @click="$router.push(`/${restaurantSlug}/cart?table=${tableNumber}`)"
-            class="w-full flex items-center justify-center gap-2 bg-slate-900 dark:bg-[#493022] hover:bg-slate-800 dark:hover:bg-[#5a3a2a] text-white font-bold py-3 rounded-xl transition-colors"
+            class="w-full flex items-center justify-center gap-2 bg-slate-900 dark:bg-[#493022] hover:bg-slate-800 dark:hover:bg-[#5a3a2a] text-white font-bold py-2 sm:py-3 rounded-lg sm:rounded-xl transition-colors text-sm sm:text-base"
           >
-            <span class="material-symbols-outlined">receipt</span>
-            Ver Pedido Completo
+            <span class="material-symbols-outlined text-lg">receipt</span>
+            <span class="hidden sm:inline">Ver Pedido Completo</span>
+            <span class="sm:hidden">Ver Pedido</span>
           </button>
           <button
             @click="mostrarPanelPedido = false"
-            class="w-full md:hidden bg-[#da540b] hover:bg-[#da540b]/90 text-white font-bold py-3 rounded-xl transition-colors"
+            class="w-full md:hidden bg-[#da540b] hover:bg-[#da540b]/90 text-white font-bold py-2 sm:py-3 rounded-lg sm:rounded-xl transition-colors text-sm sm:text-base"
           >
             Seguir comprando
           </button>
         </div>
 
         <!-- Resumen de Pedidos Anteriores (Acumulados) -->
-        <div v-if="ordersStore.hasOrders" class="border-t border-slate-200 dark:border-[#493022] p-6 space-y-4">
-          <h4 class="font-bold text-slate-900 dark:text-white flex items-center gap-2">
+        <div v-if="ordersStore.hasOrders" class="border-t border-slate-200 dark:border-[#493022] p-4 sm:p-6 space-y-3 sm:space-y-4">
+          <h4 class="font-bold text-slate-900 dark:text-white flex items-center gap-2 text-sm sm:text-base">
             <span class="material-symbols-outlined text-[#da540b] text-lg">receipt_long</span>
-            📋 Tu Resumen
+            <span class="hidden sm:inline">📋 Tu Resumen</span>
+            <span class="sm:hidden">Resumen</span>
           </h4>
 
           <!-- Lista de items acumulados -->
-          <div class="space-y-3 max-h-48 overflow-y-auto">
+          <div class="space-y-2 sm:space-y-3 max-h-48 overflow-y-auto">
             <div
               v-for="item in ordersStore.itemsWithQuantities"
               :key="`${item.id}-summary`"
-              class="flex items-start justify-between gap-3 pb-3 border-b border-slate-100 dark:border-[#493022]"
+              class="flex items-start justify-between gap-2 sm:gap-3 pb-2 sm:pb-3 border-b border-slate-100 dark:border-[#493022]"
             >
               <div class="flex-1 min-w-0">
-                <p class="text-sm font-semibold text-slate-900 dark:text-white truncate">{{ item.nombre }}</p>
+                <p class="text-xs sm:text-sm font-semibold text-slate-900 dark:text-white truncate">{{ item.nombre }}</p>
                 <p class="text-xs text-slate-500 dark:text-[#a68070]">{{ item.cantidad }}x {{ (item.precioTotal).toFixed(2) }}€</p>
               </div>
-              <span class="font-bold text-slate-900 dark:text-white whitespace-nowrap">{{ (item.precioTotal * item.cantidad).toFixed(2) }}€</span>
+              <span class="font-bold text-slate-900 dark:text-white whitespace-nowrap text-xs sm:text-sm">{{ (item.precioTotal * item.cantidad).toFixed(2) }}€</span>
             </div>
           </div>
 
           <!-- Total acumulado -->
-          <div class="bg-gradient-to-r from-[#da540b]/10 to-[#da540b]/5 dark:from-[#da540b]/20 dark:to-[#da540b]/10 rounded-lg p-4 border border-[#da540b]/20">
+          <div class="bg-gradient-to-r from-[#da540b]/10 to-[#da540b]/5 dark:from-[#da540b]/20 dark:to-[#da540b]/10 rounded-lg p-3 sm:p-4 border border-[#da540b]/20">
             <div class="flex justify-between items-center">
-              <span class="font-bold text-slate-900 dark:text-white">Total Acumulado</span>
-              <span class="text-xl font-extrabold text-[#da540b]">{{ ordersStore.totalAccumulated.toFixed(2) }}€</span>
+              <span class="font-bold text-slate-900 dark:text-white text-sm sm:text-base">Total Acumulado</span>
+              <span class="text-lg sm:text-xl font-extrabold text-[#da540b]">{{ ordersStore.totalAccumulated.toFixed(2) }}€</span>
             </div>
           </div>
         </div>
@@ -713,10 +719,10 @@ const getCategoryIcon = (nombre) => {
       <button
         v-if="!mostrarPanelPedido && cartStore.countItems > 0"
         @click="mostrarPanelPedido = true"
-        class="md:hidden fixed bottom-6 right-6 bg-[#da540b] hover:bg-[#da540b]/90 text-white rounded-full p-4 shadow-lg shadow-[#da540b]/30 z-30 flex items-center justify-center"
+        class="md:hidden fixed bottom-4 sm:bottom-6 right-4 sm:right-6 bg-[#da540b] hover:bg-[#da540b]/90 text-white rounded-full p-3 sm:p-4 shadow-lg shadow-[#da540b]/30 z-30 flex items-center justify-center"
       >
-        <span class="material-symbols-outlined">shopping_cart</span>
-        <span class="absolute -top-2 -right-2 bg-white text-[#da540b] rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">
+        <span class="material-symbols-outlined text-lg sm:text-2xl">shopping_cart</span>
+        <span class="absolute -top-1 -right-1 sm:-top-2 sm:-right-2 bg-white text-[#da540b] rounded-full w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center text-[10px] sm:text-xs font-bold">
           {{ cartStore.countItems }}
         </span>
       </button>
