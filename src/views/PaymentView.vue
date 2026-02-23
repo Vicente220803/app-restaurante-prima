@@ -259,19 +259,39 @@ const finalizarYVolver = async () => {
       }).eq('id', pedido.id)
     }
 
-    // Redirigir según el rol
-    const rutaPorRol = {
-      'camarero': '/camarero',
-      'gerente': '/admin/dashboard',
-      'admin': '/admin/dashboard'
+    // Verificar si hay una sesión de cliente activa
+    const isClientSession = sessionStorage.getItem('clientAuth') === 'true'
+
+    if (isClientSession) {
+      // Es un cliente -> Limpiar sesión de cliente y redirigir a entrada de PIN
+      sessionStorage.removeItem('clientAuth')
+      sessionStorage.removeItem('userRole')
+
+      // Obtener restaurantSlug de la ruta
+      const restaurantSlug = route.params.restaurantSlug || 'la-toscana'
+      const tableNumber = route.params.tableNumber
+
+      // Redirigir a entrada de PIN para que pida PIN de nuevo
+      router.push({
+        name: 'TableEntry',
+        params: { restaurantSlug },
+        query: { mesa: tableNumber }
+      })
+    } else {
+      // Es personal (camarero/gerente/admin) -> Redirigir según el rol
+      const rutaPorRol = {
+        'camarero': '/camarero',
+        'gerente': '/admin/dashboard',
+        'admin': '/admin/dashboard'
+      }
+      // Leer rol del store o de sessionStorage como fallback
+      let rol = adminStore.rol
+      if (!rol) {
+        const userData = JSON.parse(sessionStorage.getItem('adminUser') || '{}')
+        rol = userData.rol || 'camarero'
+      }
+      router.push(rutaPorRol[rol] || '/camarero')
     }
-    // Leer rol del store o de sessionStorage como fallback
-    let rol = adminStore.rol
-    if (!rol) {
-      const userData = JSON.parse(sessionStorage.getItem('adminUser') || '{}')
-      rol = userData.rol || 'camarero'
-    }
-    router.push(rutaPorRol[rol] || '/camarero')
   } catch (e) {
     console.error('Error finalizando:', e)
   }
