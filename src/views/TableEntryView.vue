@@ -4,6 +4,7 @@
       :restaurantName="restaurantName"
       :tableNumber="tableNumber"
       :restaurantSlug="restaurantSlug"
+      :isFromQr="isFromQr"
     />
   </div>
 </template>
@@ -18,6 +19,7 @@ const route = useRoute()
 const restaurantName = ref('La Toscana')
 const tableNumber = ref('12')
 const restaurantSlug = ref('la-toscana')
+const isFromQr = ref(false)
 
 onMounted(() => {
   // Obtener parámetros del QR
@@ -28,6 +30,9 @@ onMounted(() => {
   restaurantSlug.value = slug
   restaurantName.value = slug.replace(/-/g, ' ').toUpperCase()
   tableNumber.value = table
+
+  // Detectar si viene del QR: si hay parámetro mesa, es desde QR
+  isFromQr.value = !!table
 })
 </script>
 

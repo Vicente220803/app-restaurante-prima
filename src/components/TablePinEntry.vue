@@ -179,6 +179,10 @@ const props = defineProps({
   restaurantSlug: {
     type: String,
     default: 'la-toscana'
+  },
+  isFromQr: {
+    type: Boolean,
+    default: false
   }
 })
 
@@ -269,6 +273,24 @@ const submitPin = async () => {
   error.value = ''
 
   try {
+    // Si viene del QR: SOLO aceptar PIN del día
+    if (props.isFromQr) {
+      const pinDia = restaurante.value?.pin_dia || '1111'
+      if (pin === pinDia) {
+        // PIN del día -> Menú para clientes
+        sessionStorage.setItem('userRole', 'cliente')
+        sessionStorage.setItem('clientAuth', 'true')
+        const menuUrl = props.tableNumber
+          ? `/${props.restaurantSlug}/menu?table=${props.tableNumber}`
+          : `/${props.restaurantSlug}/menu`
+        router.push(menuUrl)
+        return
+      }
+      // Si no es el PIN del día, rechazar (no verificar PINs de personal)
+      throw new Error('PIN incorrecto')
+    }
+
+    // Si NO viene del QR: Verificar tanto PINs de personal como PIN del día
     // Primero: Verificar si es un PIN de personal (roles_usuario)
     const { data: staffData, error: staffError } = await supabase
       .from('roles_usuario')
