@@ -388,6 +388,19 @@ async function cambiarEstado(pedidoId, nuevoEstado) {
       tabActiva.value = 'preparando'
     } else if (nuevoEstado === 'listo') {
       tabActiva.value = 'listo'
+      // Cambiar a "servido" después de 5 segundos (así se quita de la vista de cocina)
+      // y será eliminado cuando se cobre la cuenta
+      setTimeout(async () => {
+        try {
+          await supabase
+            .from('pedidos')
+            .update({ estado: 'servido' })
+            .eq('id', pedidoId)
+          await cargarPedidos()
+        } catch (e) {
+          console.error('Error actualizando pedido a servido:', e)
+        }
+      }, 5000)
     }
   } catch (e) {
     console.error('Error cambiando estado:', e)

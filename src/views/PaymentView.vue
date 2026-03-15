@@ -259,6 +259,21 @@ const finalizarYVolver = async () => {
       }).eq('id', pedido.id)
     }
 
+    // Guardar ticket en la tabla de tickets
+    const { error: ticketError } = await supabase.from('tickets').insert({
+      mesa: mesa.value.id,
+      subtotal: subtotal.value,
+      descuento: descuentoAplicado.value,
+      total: totalFinal.value,
+      metodo_pago: metodoPago.value,
+      cantidad_items: itemsCuenta.value.length,
+      items: itemsCuenta.value
+    })
+
+    if (ticketError) {
+      console.error('Error guardando ticket:', ticketError)
+    }
+
     // Verificar si hay una sesión de cliente activa
     const isClientSession = sessionStorage.getItem('clientAuth') === 'true'
 

@@ -83,6 +83,21 @@
             <span>Menú</span>
           </router-link>
 
+          <!-- Carrito en móvil -->
+          <button
+            v-if="$route.path.includes('/menu')"
+            @click="irAlCarrito"
+            class="w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-neutral-700 hover:bg-white hover:text-primary-600 transition-all duration-200"
+          >
+            <div class="relative">
+              <IconShoppingCart class="w-5 h-5" />
+              <span v-if="carritoStore.items.length > 0" class="absolute -top-2 -right-2 bg-primary-600 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center font-bold text-[10px]">
+                {{ carritoStore.items.length }}
+              </span>
+            </div>
+            <span>Mi Pedido</span>
+          </button>
+
           <router-link
             to="/admin"
             @click="closeMobileMenu"
@@ -119,11 +134,12 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useCarritoStore } from '../store/carrito'
 
 const route = useRoute()
+const router = useRouter()
 const carritoStore = useCarritoStore()
 const mobileMenuOpen = ref(false)
 
@@ -133,5 +149,16 @@ const toggleMobileMenu = () => {
 
 const closeMobileMenu = () => {
   mobileMenuOpen.value = false
+}
+
+const irAlCarrito = () => {
+  const restaurantSlug = route.params.restaurantSlug || 'la-toscana'
+  const tableNumber = route.query.table || '1'
+  closeMobileMenu()
+  router.push({
+    name: 'Cart',
+    params: { restaurantSlug },
+    query: { table: tableNumber }
+  })
 }
 </script>
