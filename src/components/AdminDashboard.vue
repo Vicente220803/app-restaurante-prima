@@ -99,7 +99,7 @@
           </header>
 
           <!-- KPI Cards -->
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
             <!-- Sales Card -->
             <div class="p-6 rounded-2xl relative overflow-hidden" style="background-color: #0a0a0a; border: 1px solid #1f1f1f;">
               <div class="flex justify-between items-start mb-4">
@@ -114,16 +114,15 @@
               <h3 class="text-2xl font-extrabold mt-1">{{ ventasTotales.toFixed(2) }}€</h3>
             </div>
 
-            <!-- Active Orders Card -->
+            <!-- Closed Orders Card -->
             <div class="p-6 rounded-2xl" style="background-color: #0a0a0a; border: 1px solid #1f1f1f;">
               <div class="flex justify-between items-start mb-4">
                 <div class="p-3 rounded-xl" style="background-color: rgba(34, 197, 94, 0.1);">
-                  <span class="material-symbols-outlined" style="color: #22c55e;">receipt_long</span>
+                  <span class="material-symbols-outlined" style="color: #22c55e;">check_circle</span>
                 </div>
-                <span class="text-xs font-bold px-2 py-1 rounded-lg" style="background-color: #1f1f1f; color: #9ca3af;">En progreso</span>
               </div>
-              <p class="text-sm font-medium" style="color: #9ca3af;">Pedidos Activos</p>
-              <h3 class="text-2xl font-extrabold mt-1">{{ pedidosActivos }}</h3>
+              <p class="text-sm font-medium" style="color: #9ca3af;">Pedidos Cerrados</p>
+              <h3 class="text-2xl font-extrabold mt-1">{{ totalPedidosCerrados }}</h3>
             </div>
 
             <!-- Table Occupancy Card -->
@@ -137,6 +136,56 @@
               <div class="flex items-end justify-between mt-1">
                 <h3 class="text-2xl font-extrabold">{{ Math.round((mesasOcupadas / totalMesas) * 100) }}%</h3>
                 <p class="text-xs pb-1" style="color: #6b7280;">{{ mesasOcupadas }} de {{ totalMesas }} mesas</p>
+              </div>
+            </div>
+
+            <!-- Average Ticket Card -->
+            <div class="p-6 rounded-2xl" style="background-color: #0a0a0a; border: 1px solid #1f1f1f;">
+              <div class="flex justify-between items-start mb-4">
+                <div class="p-3 rounded-xl" style="background-color: rgba(168, 85, 247, 0.1);">
+                  <span class="material-symbols-outlined" style="color: #a855f7;">trending_up</span>
+                </div>
+              </div>
+              <p class="text-sm font-medium" style="color: #9ca3af;">Ticket Medio</p>
+              <h3 class="text-2xl font-extrabold mt-1">{{ ticketMedio.toFixed(2) }}€</h3>
+            </div>
+          </div>
+
+          <!-- Gráficos -->
+          <div v-if="horaTurno" class="space-y-8 mb-8">
+            <!-- Gráfico Ventas por Hora -->
+            <div class="rounded-2xl p-6" style="background-color: #0a0a0a; border: 1px solid #1f1f1f;">
+              <h4 class="font-bold text-lg mb-4">Ventas por Hora</h4>
+              <div style="height: 300px;">
+                <Bar v-if="horasGrafico.length > 0" :data="datosVentas" :options="opcionesGraficoVentas" />
+                <div v-else class="flex items-center justify-center h-full" style="color: #6b7280;">
+                  <p>Sin datos aún</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Gráficos en dos columnas -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <!-- Top 5 Productos -->
+              <div class="rounded-2xl p-6" style="background-color: #0a0a0a; border: 1px solid #1f1f1f;">
+                <h4 class="font-bold text-lg mb-4">Top 5 Productos Vendidos</h4>
+                <div style="height: 250px;">
+                  <Bar v-if="productosGrafico.length > 0" :data="datosProductos" :options="opcionesGraficoProductos" />
+                  <div v-else class="flex items-center justify-center h-full" style="color: #6b7280;">
+                    <p>Sin datos aún</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Métodos de Pago -->
+              <div class="rounded-2xl p-6" style="background-color: #0a0a0a; border: 1px solid #1f1f1f;">
+                <h4 class="font-bold text-lg mb-4">Métodos de Pago</h4>
+                <div style="height: 250px;">
+                  <Doughnut v-if="pagoEfectivo > 0 || pagoTarjeta > 0" :data="datosPago" :options="opcionesGraficoPago" />
+                  <div v-else class="flex items-center justify-center h-full" style="color: #6b7280;">
+                    <p>Sin datos aún</p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -540,7 +589,11 @@ import { useRouter, useRoute } from 'vue-router'
 import { useAdminStore } from '../store/admin'
 import { supabase } from '../supabase'
 import { initializeEmailJS, enviarResumenVentas } from '../services/emailService'
+import { Bar, Doughnut } from 'vue-chartjs'
+import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement } from 'chart.js'
 import CamareroView from '../views/CamareroView.vue'
+
+ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement)
 import AdminProductosView from '../views/AdminProductosView.vue'
 import CocinaView from '../views/CocinaView.vue'
 import GestionView from '../views/GestionView.vue'
@@ -581,6 +634,18 @@ const pedidoSeleccionado = ref(null)
 const mostrarResultadoEmail = ref(false)
 const resultadoEmail = ref({ success: false, message: '' })
 const mostrarExitoInicio = ref(false)
+
+// Datos para gráficos
+const ventasPorHora = ref([])
+const horasGrafico = ref([])
+const topProductos = ref([])
+const productosGrafico = ref([])
+const cantidadesProductos = ref([])
+const pagoEfectivo = ref(0)
+const pagoTarjeta = ref(0)
+const ticketMedio = ref(0)
+const totalPedidosCerrados = ref(0)
+
 let subscription = null
 
 // Iniciales del nombre
@@ -617,9 +682,10 @@ async function cargarMetricas() {
       pedidosActivos.value = pedidos.filter(p => ['pendiente', 'preparando', 'listo'].includes(p.estado)).length
 
       // Ventas totales (solo pagados)
-      ventasTotales.value = pedidos
-        .filter(p => p.estado === 'pagado')
-        .reduce((sum, p) => sum + (p.total || 0), 0)
+      const pedidosPagados = pedidos.filter(p => p.estado === 'pagado')
+      ventasTotales.value = pedidosPagados.reduce((sum, p) => sum + (p.total || 0), 0)
+      totalPedidosCerrados.value = pedidosPagados.length
+      ticketMedio.value = totalPedidosCerrados.value > 0 ? ventasTotales.value / totalPedidosCerrados.value : 0
 
       // Mesas ocupadas (únicas con pedidos pendientes, preparando o listos)
       const mesasUnicas = new Set(
@@ -631,6 +697,53 @@ async function cargarMetricas() {
 
       // Pedidos recientes
       pedidosRecientes.value = pedidos.slice(0, 5)
+
+      // ========== GRÁFICOS ==========
+
+      // 1. Ventas por hora
+      const ventasPorHoraMap = {}
+      const horasArray = []
+      pedidosPagados.forEach(p => {
+        const fecha = new Date(p.created_at)
+        const hora = fecha.getHours().toString().padStart(2, '0')
+        if (!ventasPorHoraMap[hora]) {
+          ventasPorHoraMap[hora] = 0
+          horasArray.push(hora)
+        }
+        ventasPorHoraMap[hora] += p.total || 0
+      })
+      horasArray.sort()
+      ventasPorHora.value = horasArray.map(h => ventasPorHoraMap[h])
+      horasGrafico.value = horasArray.map(h => `${h}:00`)
+
+      // 2. Top 5 productos
+      const productosMap = {}
+      pedidosPagados.forEach(p => {
+        if (p.items && Array.isArray(p.items)) {
+          p.items.forEach(item => {
+            if (!productosMap[item.nombre]) {
+              productosMap[item.nombre] = 0
+            }
+            productosMap[item.nombre] += item.cantidad || 1
+          })
+        }
+      })
+      const productosOrdenados = Object.entries(productosMap)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5)
+      productosGrafico.value = productosOrdenados.map(p => p[0])
+      cantidadesProductos.value = productosOrdenados.map(p => p[1])
+
+      // 3. Métodos de pago
+      const { data: tickets } = await supabase
+        .from('tickets')
+        .select('metodo_pago')
+        .gte('created_at', new Date(horaTurno.value).toISOString())
+
+      if (tickets) {
+        pagoEfectivo.value = tickets.filter(t => t.metodo_pago === 'efectivo').length
+        pagoTarjeta.value = tickets.filter(t => t.metodo_pago === 'tarjeta').length
+      }
     }
   } catch (error) {
     console.error('Error cargando métricas:', error)
@@ -655,6 +768,16 @@ async function confirmarComienzoDeTurno() {
     pedidosActivos.value = 0
     mesasOcupadas.value = 0
     pedidosRecientes.value = []
+    // Reset gráficos
+    ventasPorHora.value = []
+    horasGrafico.value = []
+    topProductos.value = []
+    productosGrafico.value = []
+    cantidadesProductos.value = []
+    pagoEfectivo.value = 0
+    pagoTarjeta.value = 0
+    ticketMedio.value = 0
+    totalPedidosCerrados.value = 0
 
     // Guardar hora en sessionStorage para persistencia
     sessionStorage.setItem('horaTurno', horaTurno.value.toISOString())
@@ -779,6 +902,92 @@ function suscribirseACambios() {
     )
     .subscribe()
 }
+
+// Opciones para gráficos
+const opcionesGraficoVentas = computed(() => ({
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: {
+    legend: {
+      display: false
+    }
+  },
+  scales: {
+    y: {
+      beginAtZero: true,
+      grid: { color: '#2d2d2d' },
+      ticks: { color: '#9ca3af' }
+    },
+    x: {
+      grid: { color: '#2d2d2d' },
+      ticks: { color: '#9ca3af' }
+    }
+  }
+}))
+
+const datosVentas = computed(() => ({
+  labels: horasGrafico.value,
+  datasets: [{
+    label: 'Ventas (€)',
+    data: ventasPorHora.value,
+    backgroundColor: '#f97316',
+    borderColor: '#d97706',
+    borderWidth: 2,
+    borderRadius: 4
+  }]
+}))
+
+const opcionesGraficoProductos = computed(() => ({
+  indexAxis: 'y',
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: {
+    legend: { display: false }
+  },
+  scales: {
+    x: {
+      beginAtZero: true,
+      grid: { color: '#2d2d2d' },
+      ticks: { color: '#9ca3af' }
+    },
+    y: {
+      grid: { color: '#2d2d2d' },
+      ticks: { color: '#9ca3af' }
+    }
+  }
+}))
+
+const datosProductos = computed(() => ({
+  labels: productosGrafico.value,
+  datasets: [{
+    label: 'Cantidad vendida',
+    data: cantidadesProductos.value,
+    backgroundColor: '#3b82f6',
+    borderColor: '#1e40af',
+    borderWidth: 2
+  }]
+}))
+
+const opcionesGraficoPago = computed(() => ({
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: {
+    legend: {
+      position: 'bottom',
+      labels: { color: '#9ca3af' }
+    }
+  }
+}))
+
+const datosPago = computed(() => ({
+  labels: ['Efectivo', 'Tarjeta'],
+  datasets: [{
+    data: [pagoEfectivo.value, pagoTarjeta.value],
+    backgroundColor: ['#22c55e', '#3b82f6'],
+    borderColor: ['#16a34a', '#1e40af'],
+    borderWidth: 2
+  }]
+}))
 
 // Cargar hora de turno al montar
 onMounted(() => {
