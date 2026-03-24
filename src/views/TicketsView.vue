@@ -7,9 +7,9 @@
     </div>
 
     <!-- Container Principal - Dos Columnas -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-200px)]">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[calc(100vh-200px)]">
       <!-- COLUMNA IZQUIERDA - TABLA Y FILTROS -->
-      <div class="lg:col-span-2 flex flex-col">
+      <div class="flex flex-col">
         <!-- Panel de Filtros -->
         <div class="mb-6 p-6 rounded-2xl" style="background: linear-gradient(135deg, #1f1f1f 0%, #0a0a0a 100%); border: 1px solid #2d2d2d;">
           <!-- Búsqueda -->
@@ -148,7 +148,7 @@
       </div>
 
       <!-- COLUMNA DERECHA - DETALLES DEL TICKET -->
-      <div v-if="ticketSeleccionado" class="lg:col-span-1 flex flex-col rounded-2xl border-2 border-[#2d2d2d] overflow-hidden" style="background: linear-gradient(135deg, #1f1f1f 0%, #0a0a0a 100%);">
+      <div v-if="ticketSeleccionado" class="flex flex-col rounded-2xl border-2 border-[#2d2d2d] overflow-hidden" style="background: linear-gradient(135deg, #1f1f1f 0%, #0a0a0a 100%);">
         <!-- Header Detalles -->
         <div class="bg-gradient-to-r from-[#f97316] to-[#d97706] px-6 py-6 border-b-2 border-[#2d2d2d]">
           <p class="text-white/80 text-xs font-bold uppercase tracking-widest">{{ config?.restaurant?.name }}</p>
@@ -246,7 +246,7 @@
       </div>
 
       <!-- Placeholder cuando no hay ticket seleccionado -->
-      <div v-else class="lg:col-span-1 rounded-2xl border-2 border-[#2d2d2d] flex items-center justify-center" style="background: linear-gradient(135deg, #1f1f1f 0%, #0a0a0a 100%);">
+      <div v-else class="rounded-2xl border-2 border-[#2d2d2d] flex items-center justify-center" style="background: linear-gradient(135deg, #1f1f1f 0%, #0a0a0a 100%);">
         <div class="text-center">
           <span class="material-symbols-outlined text-5xl mb-4 block" style="color: #4b5563;">receipt_long</span>
           <p style="color: #6b7280;">Selecciona un ticket para ver los detalles</p>
