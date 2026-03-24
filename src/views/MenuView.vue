@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { supabase } from '../supabase'
 import { useCartStore } from '../store/cart'
 import { useOrdersStore } from '../store/orders'
+import { loadConfig } from '../services/configService'
 import ProductModal from '../components/ProductModal.vue'
 
 const route = useRoute()
@@ -14,6 +15,7 @@ const ordersStore = useOrdersStore()
 const productos = ref([])
 const categorias = ref([])
 const restaurante = ref({})
+const config = ref(null)
 const loading = ref(true)
 
 // Modo camarero - cuando el camarero está añadiendo productos
@@ -156,7 +158,8 @@ onMounted(async () => {
       .eq('slug', restaurantSlug)
       .single()
 
-    restaurante.value = resData || { nombre: 'La Toscana' }
+    config.value = await loadConfig()
+    restaurante.value = resData || { nombre: config.value.restaurant.name }
 
     // 2. Cargar categorías desde Supabase (con el campo grupo)
     const { data: catData } = await supabase
@@ -364,7 +367,7 @@ const getCategoryIcon = (nombre) => {
             </svg>
           </div>
           <h2 class="text-slate-900 dark:text-white text-sm sm:text-lg md:text-xl font-extrabold leading-tight tracking-tight truncate">
-            {{ grupoActivo ? tituloSeccion : (restaurante.nombre || 'La Toscana') }}
+            {{ grupoActivo ? tituloSeccion : (restaurante.nombre || config?.restaurant?.name) }}
           </h2>
         </div>
         <div class="flex items-center gap-2">
@@ -452,7 +455,7 @@ const getCategoryIcon = (nombre) => {
           <!-- Hero Section -->
           <div class="px-3 md:px-10 pt-6 md:pt-10 pb-16 md:pb-24">
             <h1 class="text-slate-900 dark:text-white tracking-tight text-xl sm:text-2xl md:text-4xl font-extrabold leading-tight">
-              ¡Hola! Bienvenido a {{ restaurante.nombre || 'La Toscana' }}
+              ¡Hola! Bienvenido a {{ restaurante.nombre || config?.restaurant?.name }}
             </h1>
           </div>
 

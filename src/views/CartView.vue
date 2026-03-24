@@ -4,6 +4,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { useCartStore } from '../store/cart'
 import { useOrdersStore } from '../store/orders'
 import { supabase } from '../supabase'
+import { loadConfig } from '../services/configService'
 
 const router = useRouter()
 const route = useRoute()
@@ -13,12 +14,14 @@ const ordersStore = useOrdersStore()
 const restaurantSlug = route.params.restaurantSlug || 'la-toscana'
 const tableNumber = route.query.table || '1'
 const enviandoPedido = ref(false)
+const config = ref(null)
 
 // Calcular total (sin IVA separado)
 const total = computed(() => cartStore.totalCart)
 
 // Inicializar órdenes al cargar
 onMounted(async () => {
+  config.value = await loadConfig()
   await ordersStore.initializeFromSupabase(tableNumber)
 })
 
@@ -97,7 +100,7 @@ const confirmarPedido = async () => {
           <div class="bg-[#e27246] p-2 rounded-lg text-white">
             <span class="material-symbols-outlined block">restaurant_menu</span>
           </div>
-          <h1 class="text-xl font-extrabold tracking-tight">La Toscana</h1>
+          <h1 class="text-xl font-extrabold tracking-tight">{{ config?.restaurant?.name }}</h1>
         </div>
         <button
           @click="goBack"

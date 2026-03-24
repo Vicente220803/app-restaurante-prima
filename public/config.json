@@ -1,0 +1,18 @@
+{
+  "restaurant": {
+    "name": "Tu Restaurante",
+    "address": "Dirección del restaurante",
+    "phone": "+34 XXX XXX XXX",
+    "email": "contacto@turestaurante.com"
+  },
+  "app": {
+    "title": "Sistema de Gestión",
+    "version": "1.0.0"
+  },
+  "settings": {
+    "currency": "€",
+    "taxRate": 5,
+    "discountRate": 10,
+    "language": "es"
+  }
+}
