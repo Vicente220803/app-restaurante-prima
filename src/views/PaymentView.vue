@@ -325,7 +325,7 @@ onMounted(() => {
         <div class="w-8 h-8 bg-[#ff7b00] rounded-lg flex items-center justify-center">
           <span class="material-symbols-outlined text-white text-xl">restaurant</span>
         </div>
-        <h2 class="text-xl font-bold tracking-tight">La Toscana <span class="text-[#ff7b00]">TPV</span></h2>
+        <h2 class="text-xl font-bold tracking-tight">Tu Restaurante <span class="text-[#ff7b00]">TPV</span></h2>
       </div>
       <div class="flex items-center gap-6">
         <nav class="hidden md:flex items-center gap-8">

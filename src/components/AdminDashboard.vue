@@ -9,7 +9,7 @@
             <span class="material-symbols-outlined text-white text-2xl">dashboard_customize</span>
           </div>
           <div>
-            <h1 class="text-lg font-extrabold tracking-tight">La Toscana</h1>
+            <h1 class="text-lg font-extrabold tracking-tight">Tu Restaurante</h1>
             <p class="text-[10px] uppercase tracking-widest font-bold" style="color: #f97316;">Sistema TPV</p>
           </div>
         </div>

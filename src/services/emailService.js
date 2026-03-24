@@ -20,7 +20,7 @@ export const enviarResumenVentas = async (datos) => {
         hora_fin: datos.horaFin,
         num_pedidos: datos.numPedidos,
         num_mesas: datos.numMesas,
-        restaurante: 'La Toscana'
+        restaurante: 'Tu Restaurante'
       }
     )
 

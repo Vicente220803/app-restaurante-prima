@@ -16,7 +16,7 @@ import TablePinEntry from '../components/TablePinEntry.vue'
 
 const route = useRoute()
 
-const restaurantName = ref('La Toscana')
+const restaurantName = ref('Tu Restaurante')
 const tableNumber = ref('12')
 const restaurantSlug = ref('la-toscana')
 const isFromQr = ref(false)

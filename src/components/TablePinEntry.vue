@@ -170,7 +170,7 @@ const adminStore = useAdminStore()
 const props = defineProps({
   restaurantName: {
     type: String,
-    default: 'La Toscana'
+    default: 'Tu Restaurante'
   },
   tableNumber: {
     type: [String, Number],
