@@ -466,6 +466,29 @@
         </div>
       </div>
 
+      <!-- Modal Éxito Inicio de Turno -->
+      <div v-if="mostrarExitoInicio" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+        <div class="bg-[#0f1115] rounded-2xl border border-[#2d2d2d] max-w-md w-full shadow-2xl overflow-hidden">
+          <!-- Header -->
+          <div class="bg-gradient-to-r from-[#22c55e] to-[#16a34a] px-6 py-6 text-center">
+            <div class="flex justify-center mb-3">
+              <span class="material-symbols-outlined text-5xl text-white">check_circle</span>
+            </div>
+            <h2 class="text-2xl font-extrabold text-white tracking-tight">¡Turno Iniciado!</h2>
+          </div>
+
+          <!-- Content -->
+          <div class="px-6 py-8 text-center space-y-4">
+            <p class="text-white text-lg font-semibold">
+              El turno ha comenzado correctamente
+            </p>
+            <p class="text-gray-400 text-sm">
+              Hora de inicio: {{ horaTurno ? new Date(horaTurno).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) : '' }}
+            </p>
+          </div>
+        </div>
+      </div>
+
       <!-- Modal Resultado Envío Email -->
       <div v-if="mostrarResultadoEmail" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
         <div class="bg-[#0f1115] rounded-2xl border border-[#2d2d2d] max-w-md w-full shadow-2xl overflow-hidden">
@@ -557,6 +580,7 @@ const mostrarModalTicket = ref(false)
 const pedidoSeleccionado = ref(null)
 const mostrarResultadoEmail = ref(false)
 const resultadoEmail = ref({ success: false, message: '' })
+const mostrarExitoInicio = ref(false)
 let subscription = null
 
 // Iniciales del nombre
@@ -638,6 +662,12 @@ async function confirmarComienzoDeTurno() {
 
     await cargarMetricas()
     suscribirseACambios()
+
+    // Mostrar mensaje de éxito
+    mostrarExitoInicio.value = true
+    setTimeout(() => {
+      mostrarExitoInicio.value = false
+    }, 3000)
   } catch (error) {
     console.error('Error al comenzar turno:', error)
   } finally {
