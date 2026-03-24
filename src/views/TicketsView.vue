@@ -147,79 +147,17 @@
         </div>
       </div>
 
-      <!-- COLUMNA DERECHA - DETALLES DEL TICKET -->
+      <!-- COLUMNA DERECHA - VISTA PREVIA DEL TICKET (FORMATO IMPRESORA TÉRMICA) -->
       <div v-if="ticketSeleccionado" class="flex flex-col rounded-2xl border-2 border-[#2d2d2d] overflow-hidden" style="background: linear-gradient(135deg, #1f1f1f 0%, #0a0a0a 100%);">
-        <!-- Header Detalles -->
-        <div class="bg-gradient-to-r from-[#f97316] to-[#d97706] px-6 py-6 border-b-2 border-[#2d2d2d]">
-          <p class="text-white/80 text-xs font-bold uppercase tracking-widest">{{ config?.restaurant?.name }}</p>
-          <p class="text-white/70 text-xs mt-1">{{ config?.restaurant?.address }}</p>
-          <p class="text-white/70 text-xs">{{ config?.restaurant?.phone }}</p>
+        <!-- Header -->
+        <div class="bg-gradient-to-r from-[#f97316] to-[#d97706] px-6 py-4 border-b-2 border-[#2d2d2d]">
+          <p class="text-white text-sm font-bold">VISTA PREVIA DE IMPRESIÓN</p>
+          <p class="text-white/70 text-xs">Esto es lo que saldrá por la impresora térmica</p>
         </div>
 
-        <!-- Content Detalles -->
-        <div class="flex-1 overflow-y-auto p-6 space-y-4">
-          <!-- ID y Fecha -->
-          <div class="space-y-2">
-            <div class="flex justify-between text-sm">
-              <span style="color: #9ca3af;">Ticket ID:</span>
-              <span class="font-bold text-[#f97316;">#{{ ticketSeleccionado.id.slice(-6) }}</span>
-            </div>
-            <div class="flex justify-between text-sm">
-              <span style="color: #9ca3af;">Fecha:</span>
-              <span class="font-bold">{{ formatearFecha(ticketSeleccionado.created_at) }} - {{ formatearHora(ticketSeleccionado.created_at) }}</span>
-            </div>
-            <div class="flex justify-between text-sm">
-              <span style="color: #9ca3af;">Mesa / Camarero:</span>
-              <span class="font-bold">T-{{ String(ticketSeleccionado.mesa).padStart(2, '0') }} / {{ ticketSeleccionado.camarero || 'No asignado' }}</span>
-            </div>
-          </div>
-
-          <div class="border-t-2 border-[#2d2d2d]"></div>
-
-          <!-- Items -->
-          <div class="space-y-2">
-            <p class="text-xs font-bold uppercase tracking-widest" style="color: #f97316;">Artículos</p>
-            <div v-if="ticketSeleccionado.items && ticketSeleccionado.items.length > 0" class="space-y-2">
-              <div
-                v-for="(item, idx) in ticketSeleccionado.items"
-                :key="idx"
-                class="flex justify-between text-sm"
-              >
-                <div>
-                  <span class="text-[#f97316] font-bold">{{ item.cantidad }}x</span>
-                  <span class="ml-2">{{ item.nombre }}</span>
-                </div>
-                <span class="font-bold">€{{ (item.precio * item.cantidad).toFixed(2) }}</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="border-t-2 border-[#2d2d2d]"></div>
-
-          <!-- Resumen de Monto -->
-          <div class="space-y-2 text-sm">
-            <div class="flex justify-between">
-              <span style="color: #9ca3af;">Subtotal:</span>
-              <span class="font-bold">€{{ (ticketSeleccionado.total + ticketSeleccionado.descuento - ticketSeleccionado.impuestos).toFixed(2) }}</span>
-            </div>
-            <div v-if="ticketSeleccionado.descuento > 0" class="flex justify-between">
-              <span style="color: #22c55e;">Descuento (10%):</span>
-              <span style="color: #22c55e;" class="font-bold">-€{{ ticketSeleccionado.descuento.toFixed(2) }}</span>
-            </div>
-            <div class="flex justify-between">
-              <span style="color: #9ca3af;">Impuestos (5%):</span>
-              <span class="font-bold">€{{ ticketSeleccionado.impuestos.toFixed(2) }}</span>
-            </div>
-            <div class="border-t-2 border-[#2d2d2d] pt-2 flex justify-between">
-              <span class="font-bold uppercase">Total:</span>
-              <span class="text-xl font-black text-[#f97316]">€{{ ticketSeleccionado.total.toFixed(2) }}</span>
-            </div>
-          </div>
-
-          <div class="border-t-2 border-[#2d2d2d]"></div>
-
-          <!-- Footer Message -->
-          <p class="text-center text-xs italic" style="color: #9ca3af;">*** Copia del Cliente ***<br>¡Gracias por disfrutar con nosotros!</p>
+        <!-- Ticket Printer Component -->
+        <div class="flex-1 overflow-y-auto p-6 flex items-center justify-center">
+          <TicketPrinter :ticket="ticketSeleccionado" :config="config" />
         </div>
 
         <!-- Botones Acciones -->
@@ -229,18 +167,30 @@
             style="border-color: #f97316; color: #f97316; background-color: rgba(249, 115, 22, 0.1);"
             @mouseenter="$event.target.style.backgroundColor = 'rgba(249, 115, 22, 0.2)'"
             @mouseleave="$event.target.style.backgroundColor = 'rgba(249, 115, 22, 0.1)'"
+            @click="abrirEdicion"
           >
-            <span class="material-symbols-outlined text-sm">share</span>
-            Compartir
+            <span class="material-symbols-outlined text-sm">edit</span>
+            Editar
+          </button>
+          <button
+            class="flex-1 px-4 py-3 rounded-xl font-bold transition-all text-white flex items-center justify-center gap-2 border-2"
+            style="border-color: #f97316; color: #f97316; background-color: rgba(249, 115, 22, 0.1);"
+            @mouseenter="$event.target.style.backgroundColor = 'rgba(249, 115, 22, 0.2)'"
+            @mouseleave="$event.target.style.backgroundColor = 'rgba(249, 115, 22, 0.1)'"
+            @click="imprimirTicket"
+          >
+            <span class="material-symbols-outlined text-sm">print</span>
+            Imprimir
           </button>
           <button
             class="flex-1 px-4 py-3 rounded-xl font-bold transition-all text-white flex items-center justify-center gap-2"
             style="background: linear-gradient(135deg, #f97316 0%, #d97706 100%);"
             @mouseenter="$event.target.style.opacity = '0.9'"
             @mouseleave="$event.target.style.opacity = '1'"
+            @click="descargarPDF"
           >
-            <span class="material-symbols-outlined text-sm">print</span>
-            Re-imprimir
+            <span class="material-symbols-outlined text-sm">download</span>
+            PDF
           </button>
         </div>
       </div>
@@ -254,17 +204,31 @@
       </div>
     </div>
   </div>
+
+  <!-- Modal de Edición -->
+  <EditTicketModal
+    v-if="mostrarModalEdicion && ticketSeleccionado"
+    :ticket="ticketSeleccionado"
+    @close="cerrarEdicion"
+    @save="guardarCambiosTicket"
+  />
 </template>
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { supabase } from '../supabase'
 import { loadConfig } from '../services/configService'
+import TicketPrinter from '../components/TicketPrinter.vue'
+import EditTicketModal from '../components/EditTicketModal.vue'
+import html2canvas from 'html2canvas'
+import jsPDF from 'jspdf'
+import { toastService } from '../services/toastService'
 
 const loading = ref(true)
 const tickets = ref([])
 const ticketSeleccionado = ref(null)
 const config = ref(null)
+const mostrarModalEdicion = ref(false)
 
 // Filtros
 const filtroId = ref('')
@@ -286,6 +250,7 @@ const cargarTickets = async () => {
 
     if (error) throw error
     tickets.value = data || []
+    console.log('Tickets cargados:', tickets.value) // Debug
   } catch (e) {
     console.error('Error cargando tickets:', e)
   } finally {
@@ -358,7 +323,159 @@ const limpiarFiltros = () => {
 
 // Abrir detalle del ticket
 const abrirDetalleTicket = (ticket) => {
-  ticketSeleccionado.value = ticket
+  // Asegurar que los items se parseen correctamente
+  const ticketCopia = { ...ticket }
+  if (typeof ticketCopia.items === 'string') {
+    try {
+      ticketCopia.items = JSON.parse(ticketCopia.items)
+    } catch (e) {
+      console.error('Error parseando items:', e)
+      ticketCopia.items = []
+    }
+  }
+  ticketSeleccionado.value = ticketCopia
+  console.log('Ticket seleccionado:', ticketSeleccionado.value) // Debug
+}
+
+// Imprimir ticket
+const imprimirTicket = () => {
+  const printWindow = window.open('', '', 'width=400,height=600')
+  const ticketHTML = document.querySelector('[style*="font-family"]')?.outerHTML || ''
+  printWindow.document.write(`
+    <html>
+      <head>
+        <style>
+          body { font-family: 'Courier New', monospace; margin: 0; padding: 10px; }
+          .ticket-content { width: 280px; margin: 0 auto; font-size: 12px; line-height: 1.4; }
+        </style>
+      </head>
+      <body>
+        ${ticketHTML}
+      </body>
+    </html>
+  `)
+  printWindow.document.close()
+  setTimeout(() => {
+    printWindow.print()
+    printWindow.close()
+  }, 250)
+}
+
+// Editar ticket
+const abrirEdicion = () => {
+  mostrarModalEdicion.value = true
+}
+
+const cerrarEdicion = () => {
+  mostrarModalEdicion.value = false
+}
+
+// Guardar cambios del ticket
+const guardarCambiosTicket = async (datosActualizados) => {
+  try {
+    console.log('Guardando ticket:', ticketSeleccionado.value.id)
+    console.log('Datos a guardar:', datosActualizados)
+
+    // Validar que hay un ticket seleccionado
+    if (!ticketSeleccionado.value?.id) {
+      throw new Error('No hay ticket seleccionado')
+    }
+
+    // Preparar items - asegurarse de que tiene la estructura correcta
+    const itemsProcesados = (datosActualizados.items || []).map(item => ({
+      nombre: String(item.nombre || ''),
+      cantidad: Number(item.cantidad) || 1,
+      precio: Number(item.precio) || 0
+    }))
+
+    console.log('Items procesados:', itemsProcesados)
+
+    // Preparar datos para actualizar
+    const datosParaGuardar = {
+      items: itemsProcesados,
+      subtotal: Number(datosActualizados.subtotal) || 0,
+      descuento: Number(datosActualizados.descuento) || 0,
+      total: Number(datosActualizados.total) || 0
+    }
+
+    console.log('Datos finales a guardar:', JSON.stringify(datosParaGuardar))
+
+    const { data, error } = await supabase
+      .from('tickets')
+      .update(datosParaGuardar)
+      .eq('id', ticketSeleccionado.value.id)
+      .select()
+
+    if (error) {
+      console.error('Error de Supabase completo:', error)
+      console.error('Detalles:', error.details || error.message)
+      throw new Error(error.message || 'Error desconocido de Supabase')
+    }
+
+    console.log('Respuesta de Supabase:', data)
+
+    // Actualizar el ticket seleccionado con los nuevos datos
+    ticketSeleccionado.value = {
+      ...ticketSeleccionado.value,
+      items: itemsProcesados,
+      subtotal: datosActualizados.subtotal,
+      descuento: datosActualizados.descuento,
+      total: datosActualizados.total
+    }
+
+    // Recargar lista de tickets
+    await cargarTickets()
+
+    cerrarEdicion()
+    console.log('✅ Cambios guardados correctamente')
+    toastService.success('✅ Ticket actualizado correctamente')
+  } catch (e) {
+    console.error('Error guardando cambios:', e)
+    toastService.error('❌ Error: ' + (e.message || 'Error desconocido'))
+  }
+}
+
+// Descargar como PDF
+const descargarPDF = async () => {
+  try {
+    const ticketElement = document.querySelector('.font-mono.text-xs.bg-black')
+    if (!ticketElement) {
+      toastService.error('❌ Error: No se pudo encontrar el ticket')
+      return
+    }
+
+    toastService.loading('⏳ Generando PDF...')
+
+    // Crear canvas del elemento
+    const canvas = await html2canvas(ticketElement, {
+      scale: 2,
+      logging: false,
+      useCORS: true,
+      backgroundColor: '#000000'
+    })
+
+    // Crear PDF con tamaño de papel térmico (80mm)
+    const pdf = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: [80, 200] // 80mm ancho, 200mm alto
+    })
+
+    const imgData = canvas.toDataURL('image/png')
+    const imgWidth = 80
+    const imgHeight = (canvas.height * imgWidth) / canvas.width
+
+    pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight)
+
+    // Descargar
+    const nombreArchivo = `ticket-${ticketSeleccionado.value.id.slice(-6)}-${new Date().getTime()}.pdf`
+    pdf.save(nombreArchivo)
+
+    toastService.success('✅ PDF descargado correctamente')
+  } catch (e) {
+    console.error('Error descargando PDF:', e)
+    toastService.error('❌ Error al descargar PDF: ' + e.message)
+  }
 }
 
 // Suscripción en tiempo real

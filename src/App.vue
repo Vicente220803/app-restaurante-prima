@@ -1,9 +1,10 @@
 <template>
   <div id="app">
     <router-view />
+    <ToastContainer />
   </div>
 </template>
 
 <script setup>
-// App.vue ahora solo maneja el router-view
+import ToastContainer from './components/ToastContainer.vue'
 </script>
