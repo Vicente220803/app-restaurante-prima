@@ -264,9 +264,11 @@ const finalizarYVolver = async () => {
       mesa: mesa.value.id,
       subtotal: subtotal.value,
       descuento: descuentoAplicado.value,
+      impuestos: iva.value,
       total: totalFinal.value,
       metodo_pago: metodoPago.value,
       cantidad_items: itemsCuenta.value.length,
+      camarero: adminStore.nombre || 'No asignado',
       items: itemsCuenta.value
     })
 
